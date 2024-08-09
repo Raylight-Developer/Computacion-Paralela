@@ -10,13 +10,13 @@ const int num_ticks = 1500;
 const int tick_update = 100;
 const int num_threads = 8;
 
-#define plant_spawn_rate      30.0 // porcentaje (int) de spawn
-#define carnivore_spawn_rate  10.0 // porcentaje (int) de spawn
-#define herbivore_spawn_rate  10.0 // porcentaje (int) de spawn
+#define plant_spawn_rate      0.3 // porcentaje de spawn
+#define carnivore_spawn_rate  0.1 // porcentaje de spawn
+#define herbivore_spawn_rate  0.1 // porcentaje de spawn
 
-#define plant_after_spawn_rate     0.15  // porcentaje (int) de spawn despues del inicio
-#define carnivore_after_spawn_rate 0.05  // porcentaje (int) de spawn despues del inicio
-#define herbivore_after_spawn_rate 0.05  // porcentaje (int) de spawn despues del inicio
+#define plant_after_spawn_rate     0.15  // porcentaje de spawn despues del inicio
+#define carnivore_after_spawn_rate 0.05  // porcentaje de spawn despues del inicio
+#define herbivore_after_spawn_rate 0.05  // porcentaje de spawn despues del inicio
 
 #define plant_reproduction_chance 60
 #define max_plant_age 150 // muerte por edad
@@ -81,16 +81,13 @@ void initialize_grid(Grid& grid) {
 	for (int i = 0; i < grid_size; ++i) {
 		for (int j = 0; j < grid_size; ++j) {
 			grid[i][j] = Cell(Species::Empty);
-			srand(i+j);
-			if (double(rand() % 100) < plant_spawn_rate * 100.0) {
+			if (double(rand() % 100) < (plant_spawn_rate * 100.0)) {
 				grid[i][j] = Cell(Species::Plant);
 			}
-			srand(i+j+3);
-			if (double(rand() % 100) < carnivore_spawn_rate * 100.0) {
+			if (double(rand()*j % 100) < (carnivore_spawn_rate * 100.0)) {
 				grid[i][j] = Cell(Species::Carnivore);
 			}
-			srand(i+j+6);
-			if (double(rand() % 100) < herbivore_spawn_rate * 100.0) {
+			if (double(rand()*i % 100) < (herbivore_spawn_rate * 100.0)) {
 				grid[i][j] = Cell(Species::Herbivore);
 			}
 		}
