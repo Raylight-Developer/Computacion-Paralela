@@ -1,3 +1,8 @@
+/**
+ * @file ecosystem_simulation.cpp
+ * @brief Simulación de un ecosistema con plantas, herbívoros y carnívoros utilizando paralelización con OpenMP.
+ */
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -5,47 +10,64 @@
 
 using namespace std;
 
+/** Tamaño de la cuadrícula. */
 const int grid_size = 60;
+/** Número de iteraciones de la simulación. */
 const int num_ticks = 1500;
+/** Intervalo para imprimir el estado de la cuadrícula. */
 const int tick_update = 250;
+/** Número de hilos a utilizar en la simulación. */
 const int num_threads = 12;
 
-#define plant_spawn_rate      0.3 // porcentaje de spawn
-#define carnivore_spawn_rate  0.1 // porcentaje de spawn
-#define herbivore_spawn_rate  0.1 // porcentaje de spawn
+#define plant_spawn_rate      0.3  /**< Porcentaje de aparición inicial de plantas. */
+#define carnivore_spawn_rate  0.1  /**< Porcentaje de aparición inicial de carnívoros. */
+#define herbivore_spawn_rate  0.1  /**< Porcentaje de aparición inicial de herbívoros. */
 
-#define plant_after_spawn_rate     0.15  // porcentaje de spawn despues del inicio
-#define carnivore_after_spawn_rate 0.05  // porcentaje de spawn despues del inicio
-#define herbivore_after_spawn_rate 0.05  // porcentaje de spawn despues del inicio
+#define plant_after_spawn_rate     0.15  /**< Porcentaje de aparición de plantas después del inicio. */
+#define carnivore_after_spawn_rate 0.05  /**< Porcentaje de aparición de carnívoros después del inicio. */
+#define herbivore_after_spawn_rate 0.05  /**< Porcentaje de aparición de herbívoros después del inicio. */
 
-#define plant_reproduction_chance 60
-#define max_plant_age 150 // muerte por edad
+#define plant_reproduction_chance 60  /**< Probabilidad de reproducción de las plantas. */
+#define max_plant_age 150 /**< Edad máxima de las plantas antes de morir. */
 
-#define carnivore_energy 30
-#define herbivore_energy 25
+#define carnivore_energy 30  /**< Energía inicial de los carnívoros. */
+#define herbivore_energy 25  /**< Energía inicial de los herbívoros. */
 
-#define carnivore_reproduction_energy 35
-#define herbivore_reproduction_energy 45
+#define carnivore_reproduction_energy 35  /**< Energía requerida para que un carnívoro se reproduzca. */
+#define herbivore_reproduction_energy 45  /**< Energía requerida para que un herbívoro se reproduzca. */
 
-#define carnivore_reproduction_energy_loss 25
-#define herbivore_reproduction_energy_loss 35
+#define carnivore_reproduction_energy_loss 25  /**< Pérdida de energía al reproducirse para los carnívoros. */
+#define herbivore_reproduction_energy_loss 35  /**< Pérdida de energía al reproducirse para los herbívoros. */
 
-#define carnivore_satiation 40
-#define herbivore_satiation 20
+#define carnivore_satiation 40  /**< Nivel de hambre inicial de los carnívoros. */
+#define herbivore_satiation 20  /**< Nivel de hambre inicial de los herbívoros. */
 
-#define carnivore_energy_gain 15 + grid[nx][ny].energy // al comer herbívoro (grid[nx][ny].energy) para consumir la energía del herbívoro comido
-#define herbivore_energy_gain 10  // al comer planta    (grid[nx][ny].energy) para consumir la energía de la planta comida
+#define carnivore_energy_gain 15 + grid[nx][ny].energy  /**< Energía ganada por un carnívoro al comer un herbívoro. */
+#define herbivore_energy_gain 10  /**< Energía ganada por un herbívoro al comer una planta. */
 
-#define max_carnivore_age 60 // muerte por edad
-#define max_herbivore_age 80 // muerte por edad
+#define max_carnivore_age 60  /**< Edad máxima de los carnívoros antes de morir. */
+#define max_herbivore_age 80  /**< Edad máxima de los herbívoros antes de morir. */
 
+/**
+ * @enum Species
+ * @brief Define las especies posibles en la simulación.
+ */
 enum struct Species { Empty, Plant, Herbivore, Carnivore };
-struct Cell {
-	Species species;
-	int energy;
-	int hunger;
-	int age;
 
+/**
+ * @struct Cell
+ * @brief Representa una célula en la cuadrícula, que puede contener una especie o estar vacía.
+ */
+struct Cell {
+    Species species;  /**< Especie en la célula. */
+    int energy;       /**< Energía de la célula. */
+    int hunger;       /**< Nivel de hambre de la célula. */
+    int age;          /**< Edad de la célula. */
+
+    /**
+     * @brief Constructor para inicializar una célula con una especie.
+     * @param species Especie a la que pertenece la célula.
+     */
 	Cell(const Species& species = Species::Empty): species(species) {
 		switch (species) {
 			case Species::Empty: {
@@ -77,6 +99,10 @@ struct Cell {
 };
 using Grid = vector<vector<Cell>>;
 
+/**
+ * @brief Inicializa la cuadrícula con especies distribuidas aleatoriamente.
+ * @param grid Cuadrícula a inicializar.
+ */
 void initialize_grid(Grid& grid) {
 	for (int i = 0; i < grid_size; ++i) {
 		for (int j = 0; j < grid_size; ++j) {
@@ -94,6 +120,12 @@ void initialize_grid(Grid& grid) {
 	}
 }
 
+/**
+ * @brief Obtiene los vecinos de una posición en la cuadrícula.
+ * @param x Coordenada x en la cuadrícula.
+ * @param y Coordenada y en la cuadrícula.
+ * @return Un vector de pares (x, y) que representan las posiciones vecinas.
+ */
 vector<pair<int, int>> get_neighbors(int x, int y) {
 	vector<pair<int, int>> neighbors;
 	for (int dx = -1; dx <= 1; ++dx) {
@@ -110,6 +142,12 @@ vector<pair<int, int>> get_neighbors(int x, int y) {
 	return neighbors;
 }
 
+/**
+ * @brief Mueve una célula a una posición vacía en la cuadrícula.
+ * @param neighbors Vecinos de la célula.
+ * @param next_grid Cuadrícula para la siguiente iteración.
+ * @param cell Célula que se va a mover.
+ */
 void move_to_empty(const vector<pair<int, int>>& neighbors, Grid& next_grid, Cell& cell) {
 	for (const auto& neighbor : neighbors) {
 		int nx = neighbor.first;
@@ -121,6 +159,15 @@ void move_to_empty(const vector<pair<int, int>>& neighbors, Grid& next_grid, Cel
 	}
 }
 
+/**
+ * @brief Actualiza el estado de una célula en la cuadrícula.
+ * @param current_cell Célula actual en la cuadrícula.
+ * @param grid Cuadrícula actual.
+ * @param next_grid Cuadrícula para la siguiente iteración.
+ * @param x Coordenada x de la célula.
+ * @param y Coordenada y de la célula.
+ * @param random Número aleatorio utilizado para la actualización.
+ */
 void update_cell(const Cell& current_cell, const Grid& grid, Grid& next_grid, const int& x, const int& y, const int& random) {
 	if (current_cell.species == Species::Empty) {
 		if (random % 2 == 0) {
@@ -265,6 +312,10 @@ void update_cell(const Cell& current_cell, const Grid& grid, Grid& next_grid, co
 	}
 }
 
+/**
+ * @brief Imprime el estado actual de la cuadrícula, incluyendo el conteo de especies.
+ * @param grid Cuadrícula a imprimir.
+ */
 void print_grid(const Grid& grid) {
 	int plants = 0;
 	int herbivores = 0;
@@ -298,7 +349,10 @@ void print_grid(const Grid& grid) {
 	}
 }
 
-
+/**
+ * @brief Simula la evolución del ecosistema a lo largo del tiempo.
+ * @param grid Cuadrícula que representa el ecosistema.
+ */
 void simulate(Grid& grid) {
 	for (int tick = 0; tick < num_ticks; ++tick) {
 		Grid next_grid = grid;  // Crear una nueva cuadrícula para la próxima generación
@@ -320,6 +374,10 @@ void simulate(Grid& grid) {
 	}
 }
 
+/**
+ * @brief Punto de entrada del programa. Inicializa y ejecuta la simulación.
+ * @return Código de salida del programa.
+ */
 int main() {
 	Grid grid = Grid(grid_size, vector<Cell>(grid_size));
 	initialize_grid(grid);
