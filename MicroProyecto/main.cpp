@@ -19,33 +19,33 @@ const int tick_update = 250;
 /** Número de hilos a utilizar en la simulación. */
 const int num_threads = 12;
 
-#define plant_spawn_rate      0.3  /**< Porcentaje de aparición inicial de plantas. */
+#define plant_spawn_rate      0.5  /**< Porcentaje de aparición inicial de plantas. */
 #define carnivore_spawn_rate  0.1  /**< Porcentaje de aparición inicial de carnívoros. */
 #define herbivore_spawn_rate  0.1  /**< Porcentaje de aparición inicial de herbívoros. */
 
-#define plant_after_spawn_rate     0.15  /**< Porcentaje de aparición de plantas después del inicio. */
-#define carnivore_after_spawn_rate 0.05  /**< Porcentaje de aparición de carnívoros después del inicio. */
-#define herbivore_after_spawn_rate 0.05  /**< Porcentaje de aparición de herbívoros después del inicio. */
+#define plant_after_spawn_rate     0.05  /**< Porcentaje de aparición de plantas después del inicio. */
+#define carnivore_after_spawn_rate 0.025 /**< Porcentaje de aparición de carnívoros después del inicio. */
+#define herbivore_after_spawn_rate 0.025 /**< Porcentaje de aparición de herbívoros después del inicio. */
 
-#define plant_reproduction_chance 60  /**< Probabilidad de reproducción de las plantas. */
+#define plant_reproduction_chance 0.3  /**< Probabilidad de reproducción de las plantas. */
 #define max_plant_age 150 /**< Edad máxima de las plantas antes de morir. */
 
 #define carnivore_energy 30  /**< Energía inicial de los carnívoros. */
 #define herbivore_energy 25  /**< Energía inicial de los herbívoros. */
 
 #define carnivore_reproduction_energy 35  /**< Energía requerida para que un carnívoro se reproduzca. */
-#define herbivore_reproduction_energy 45  /**< Energía requerida para que un herbívoro se reproduzca. */
+#define herbivore_reproduction_energy 55  /**< Energía requerida para que un herbívoro se reproduzca. */
 
 #define carnivore_reproduction_energy_loss 25  /**< Pérdida de energía al reproducirse para los carnívoros. */
 #define herbivore_reproduction_energy_loss 35  /**< Pérdida de energía al reproducirse para los herbívoros. */
 
-#define carnivore_satiation 40  /**< Nivel de hambre inicial de los carnívoros. */
-#define herbivore_satiation 20  /**< Nivel de hambre inicial de los herbívoros. */
+#define carnivore_satiation 40  /**< Nivel de pancita llena inicial de los carnívoros. */
+#define herbivore_satiation 20  /**< Nivel de pancita llena inicial de los herbívoros. */
 
-#define carnivore_energy_gain 15 + grid[nx][ny].energy  /**< Energía ganada por un carnívoro al comer un herbívoro. */
-#define herbivore_energy_gain 10  /**< Energía ganada por un herbívoro al comer una planta. */
+#define carnivore_energy_gain 20 + grid[nx][ny].energy  /**< Energía ganada por un carnívoro al comer un herbívoro. */
+#define herbivore_energy_gain 10                        /**< Energía ganada por un herbívoro al comer una planta. */
 
-#define max_carnivore_age 60  /**< Edad máxima de los carnívoros antes de morir. */
+#define max_carnivore_age 70  /**< Edad máxima de los carnívoros antes de morir. */
 #define max_herbivore_age 80  /**< Edad máxima de los herbívoros antes de morir. */
 
 /**
@@ -59,15 +59,15 @@ enum struct Species { Empty, Plant, Herbivore, Carnivore };
  * @brief Representa una célula en la cuadrícula, que puede contener una especie o estar vacía.
  */
 struct Cell {
-    Species species;  /**< Especie en la célula. */
-    int energy;       /**< Energía de la célula. */
-    int hunger;       /**< Nivel de hambre de la célula. */
-    int age;          /**< Edad de la célula. */
+	Species species;  /**< Especie en la célula. */
+	int energy;       /**< Energía de la célula. */
+	int hunger;       /**< Nivel de hambre de la célula. */
+	int age;          /**< Edad de la célula. */
 
-    /**
-     * @brief Constructor para inicializar una célula con una especie.
-     * @param species Especie a la que pertenece la célula.
-     */
+	/**
+	 * @brief Constructor para inicializar una célula con una especie.
+	 * @param species Especie a la que pertenece la célula.
+	 */
 	Cell(const Species& species = Species::Empty): species(species) {
 		switch (species) {
 			case Species::Empty: {
@@ -357,9 +357,7 @@ void simulate(Grid& grid) {
 	for (int tick = 0; tick < num_ticks; ++tick) {
 		Grid next_grid = grid;  // Crear una nueva cuadrícula para la próxima generación
 		srand(tick);
-		int min = 1853087;
-		int max = 153153150331;
-		int random = min + std::rand() % (max - min + 1);
+		int random = std::rand();
 		#pragma omp parallel for num_threads(num_threads)
 		for (int i = 0; i < grid_size; ++i) {
 			for (int j = 0; j < grid_size; ++j) {
@@ -372,6 +370,7 @@ void simulate(Grid& grid) {
 			print_grid(grid);
 		}
 	}
+	print_grid(grid);
 }
 
 /**
