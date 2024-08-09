@@ -4,50 +4,167 @@
 
 using namespace std;
 
-// Definición de estructuras para las especies
-enum struct Species { Empty, Plant, Herbivore, Carnivore };
+const int grid_size = 24;
+const int num_ticks = 24;
+const int num_threads = 12;
 
+#define plant_spawn_rate     20 // porcentaje (int) de spawn
+#define carnivore_spawn_rate 20 // porcentaje (int) de spawn
+#define herbivore_spawn_rate 20 // porcentaje (int) de spawn
+
+#define plant_reproduction_chance 0.15
+#define carnivore_reproduction_energy 15
+#define herbivore_reproduction_energy 15
+
+#define plant_birth_energy     10
+#define carnivore_birth_energy 10
+#define herbivore_birth_energy 10
+
+#define carnivore_birth_hunger 6 // muere despues de no comer por n ticks
+#define herbivore_birth_hunger 3 // muere despues de no comer por n ticks
+
+#define carnivore_energy_gain 3 // al comer herbívoro (grid[nx][ny].energy) para consumir la energia del herbivoro comido
+#define herbivore_energy_gain 4 // al comer planta    (grid[nx][ny].energy) para consumir la energia de la planta comida
+
+const int max_age = 10; // muerte por edad
+
+enum struct Species { Empty, Plant, Herbivore, Carnivore };
 struct Cell {
 	Species species;
-	int energy; // energía que tiene el ser vivo
+	int energy;
+	int hunger;
+	int age;
 };
-
 using Grid = vector<vector<Cell>>;
-typedef uint32_t uint;
 
-// Parámetros de simulación
-const uint grid_size = 10;
-const uint num_ticks = 100;
-const uint num_threads = 4;
-
-// Inicializar la cuadrícula con especies aleatorias
 void initialize_grid(Grid& grid) {
 	for (int i = 0; i < grid_size; ++i) {
 		for (int j = 0; j < grid_size; ++j) {
 			grid[i][j] = {Species::Empty, 0};
-			if (rand() % 10 < 3) {
-				grid[i][j] = {Species::Plant, 10}; // 30% probabilidad de planta
-			} else if (rand() % 10 < 2) {
-				grid[i][j] = {Species::Herbivore, 20}; // 20% probabilidad de herbívoro
-			} else if (rand() % 10 < 1) {
-				grid[i][j] = {Species::Carnivore, 30}; // 10% probabilidad de carnívoro
+			if (rand() % 100 < plant_spawn_rate) {
+				grid[i][j] = {Species::Plant, plant_birth_energy};
+			}
+			if (rand() % 100 < carnivore_spawn_rate) {
+				grid[i][j] = {Species::Carnivore, carnivore_birth_energy, carnivore_birth_hunger};
+			}
+			if (rand() % 100 < herbivore_spawn_rate) {
+				grid[i][j] = {Species::Herbivore, herbivore_birth_energy, herbivore_birth_hunger};
 			}
 		}
 	}
 }
+vector<pair<int, int>> get_neighbors(int x, int y) {
+	vector<pair<int, int>> neighbors;
+	for (int dx = -1; dx <= 1; ++dx) {
+		for (int dy = -1; dy <= 1; ++dy) {
+			if (dx == 0 && dy == 0) continue; // ignorar la celda actual
+			int nx = x + dx;
+			int ny = y + dy;
+			if (nx >= 0 && nx < grid_size && ny >= 0 && ny < grid_size) {
+				neighbors.emplace_back(nx, ny);
+			}
+		}
+	}
+	return neighbors;
+}
 
-// Función para mostrar el estado del ecosistema
+void update_cell(Cell& cell, Grid& grid, const int& x, const int& y) {
+	if (cell.species == Species::Empty) return;
+	vector<pair<int, int>> neighbors = get_neighbors(x, y);
+	switch (cell.species) {
+		case Species::Plant: {
+			for (auto& neighbor : neighbors) {
+				int nx = neighbor.first;
+				int ny = neighbor.second;
+				if (grid[nx][ny].species == Species::Empty && (rand() % 100) < (plant_reproduction_chance * 100)) {
+					grid[nx][ny].species = Species::Plant;
+					grid[nx][ny].energy = 10;
+				}
+			}
+			break;
+		}
+		case Species::Herbivore: {
+			bool ate = false;
+			for (auto& neighbor : neighbors) {
+				int nx = neighbor.first;
+				int ny = neighbor.second;
+				if (grid[nx][ny].species == Species::Plant) {
+					grid[nx][ny].species = Species::Empty;
+					cell.energy += herbivore_energy_gain;
+					cell.hunger = herbivore_birth_hunger;
+					ate = true;
+					break;
+				}
+			}
+			if (!ate) {
+				cell.energy--;
+			}
+
+			if (cell.energy >= herbivore_reproduction_energy) {
+				for (auto& neighbor : neighbors) {
+					int nx = neighbor.first;
+					int ny = neighbor.second;
+					if (grid[nx][ny].species == Species::Empty) {
+						grid[nx][ny].species = Species::Herbivore;
+						grid[nx][ny].energy = 10;
+						cell.hunger = herbivore_birth_hunger;
+						break;
+					}
+				}
+			}
+			break;
+		}
+		case Species::Carnivore: {
+			bool ate = false;
+			for (auto& neighbor : neighbors) {
+				int nx = neighbor.first;
+				int ny = neighbor.second;
+				if (grid[nx][ny].species == Species::Herbivore) {
+					grid[nx][ny].species = Species::Empty;
+					cell.energy += carnivore_energy_gain;
+					cell.hunger = carnivore_birth_hunger;
+					ate = true;
+					break;
+				}
+			}
+			if (!ate) {
+				cell.energy--;
+			}
+
+			if (cell.energy >= carnivore_reproduction_energy) {
+				for (auto& neighbor : neighbors) {
+					int nx = neighbor.first;
+					int ny = neighbor.second;
+					if (grid[nx][ny].species == Species::Empty) {
+						grid[nx][ny].species = Species::Carnivore;
+						grid[nx][ny].energy = carnivore_birth_energy;
+						cell.hunger = carnivore_birth_hunger;
+						break;
+					}
+				}
+			}
+			break;
+		}
+		default: break;
+	}
+	cell.age++;
+	if (cell.energy <= 0 || cell.age > max_age) {
+		cell.species = Species::Empty;
+	}
+}
+
+
 void print_grid(const Grid& grid) {
-	uint plants = 0;
-	uint herbivores = 0;
-	uint carnivores = 0;
+	int plants = 0;
+	int herbivores = 0;
+	int carnivores = 0;
 	for (const auto& row : grid) {
 		for (const auto& cell : row) {
 			switch (cell.species) {
-				case Species::Plant: plants++; break;
-				case Species::Herbivore: herbivores++; break;
-				case Species::Carnivore: carnivores++; break;
-				default: break;
+			case Species::Plant: plants++; break;
+			case Species::Herbivore: herbivores++; break;
+			case Species::Carnivore: carnivores++; break;
+			default: break;
 			}
 		}
 	}
@@ -60,61 +177,25 @@ void print_grid(const Grid& grid) {
 		for (const auto& cell : row) {
 			char c = '.';
 			switch (cell.species) {
-				case Species::Plant:     c = 'P'; break;
-				case Species::Herbivore: c = 'H'; break;
-				case Species::Carnivore: c = 'C'; break;
-				default: break;
+			case Species::Plant:     c = 'P'; break;
+			case Species::Herbivore: c = 'H'; break;
+			case Species::Carnivore: c = 'C'; break;
+			default: break;
 			}
 			cout << c << " ";
 		}
 	}
 }
 
-// Actualizar el estado de cada celda
-void update_cell(Cell& cell, Grid& grid, const uint& x, const uint& y) {
-	switch (cell.species) {
-		case Species::Plant: {
-			// Las plantas crecen
-			cell.energy++;
-			break;
-		}
-		case Species::Herbivore: {
-			// Los herbívoros comen plantas y se mueven
-			if (x > 0 && grid[x - 1][y].species == Species::Plant) {
-				cell.energy += grid[x - 1][y].energy;
-				grid[x - 1][y] = { Species::Empty, 0 };
-			}
-			cell.energy--; // consumo de energía al moverse
-			break;
-		}
-		case Species::Carnivore: {
-			// Los carnívoros comen herbívoros y se mueven
-			if (x > 0 && grid[x - 1][y].species == Species::Herbivore) {
-				cell.energy += grid[x - 1][y].energy;
-				grid[x - 1][y] = { Species::Empty, 0 };
-			}
-			cell.energy--; // consumo de energía al moverse
-			break;
-		}
-		default: break;
-	}
-	if (cell.energy <= 0) {
-		cell.species = Species::Empty; // el ser muere si no tiene energía
-	}
-}
-
-// Ciclo principal de simulación
 void simulate(Grid& grid) {
-	for (uint tick = 0; tick < num_ticks; ++tick) {
+	for (int tick = 0; tick < num_ticks; ++tick) {
 		#pragma omp parallel for num_threads(num_threads)
 		for (int i = 0; i < grid_size; ++i) {
 			for (int j = 0; j < grid_size; ++j) {
 				update_cell(grid[i][j], grid, i, j);
 			}
 		}
-		// Sincronizar entre hilos (implícito con OpenMP)
-		// Mostrar el estado del ecosistema
-		cout << endl << endl << "Tick: " << tick;
+		cout << endl << endl << "Tick: " << tick + 1;
 		print_grid(grid);
 	}
 }
