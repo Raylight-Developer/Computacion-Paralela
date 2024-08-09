@@ -5,9 +5,9 @@
 
 using namespace std;
 
-const int grid_size = 100;
+const int grid_size = 60;
 const int num_ticks = 1500;
-const int tick_update = 100;
+const int tick_update = 250;
 const int num_threads = 12;
 
 #define plant_spawn_rate      0.3 // porcentaje de spawn
@@ -323,7 +323,6 @@ void simulate(Grid& grid) {
 int main() {
 	Grid grid = Grid(grid_size, vector<Cell>(grid_size));
 	initialize_grid(grid);
-	print_grid(grid);
 	simulate(grid);
 	return 0;
 }
