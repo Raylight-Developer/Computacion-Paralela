@@ -30,14 +30,14 @@ const int num_threads = 12;
 #define plant_reproduction_chance 0.3  /**< Probabilidad de reproducción de las plantas. */
 #define max_plant_age 150 /**< Edad máxima de las plantas antes de morir. */
 
-#define carnivore_energy 30  /**< Energía inicial de los carnívoros. */
-#define herbivore_energy 25  /**< Energía inicial de los herbívoros. */
+#define carnivore_energy 20  /**< Energía inicial de los carnívoros. */
+#define herbivore_energy 15  /**< Energía inicial de los herbívoros. */
 
 #define carnivore_reproduction_energy 35  /**< Energía requerida para que un carnívoro se reproduzca. */
-#define herbivore_reproduction_energy 55  /**< Energía requerida para que un herbívoro se reproduzca. */
+#define herbivore_reproduction_energy 65  /**< Energía requerida para que un herbívoro se reproduzca. */
 
 #define carnivore_reproduction_energy_loss 25  /**< Pérdida de energía al reproducirse para los carnívoros. */
-#define herbivore_reproduction_energy_loss 35  /**< Pérdida de energía al reproducirse para los herbívoros. */
+#define herbivore_reproduction_energy_loss 45  /**< Pérdida de energía al reproducirse para los herbívoros. */
 
 #define carnivore_satiation 40  /**< Nivel de pancita llena inicial de los carnívoros. */
 #define herbivore_satiation 20  /**< Nivel de pancita llena inicial de los herbívoros. */
