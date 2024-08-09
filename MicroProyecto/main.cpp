@@ -5,10 +5,10 @@
 
 using namespace std;
 
-const int grid_size = 64;
+const int grid_size = 100;
 const int num_ticks = 1500;
 const int tick_update = 100;
-const int num_threads = 8;
+const int num_threads = 12;
 
 #define plant_spawn_rate      0.3 // porcentaje de spawn
 #define carnivore_spawn_rate  0.1 // porcentaje de spawn
@@ -33,8 +33,8 @@ const int num_threads = 8;
 #define carnivore_satiation 40
 #define herbivore_satiation 20
 
-#define carnivore_energy_gain 10 // al comer herbívoro (grid[nx][ny].energy) para consumir la energía del herbívoro comido
-#define herbivore_energy_gain 5  // al comer planta    (grid[nx][ny].energy) para consumir la energía de la planta comida
+#define carnivore_energy_gain 15 + grid[nx][ny].energy // al comer herbívoro (grid[nx][ny].energy) para consumir la energía del herbívoro comido
+#define herbivore_energy_gain 10  // al comer planta    (grid[nx][ny].energy) para consumir la energía de la planta comida
 
 #define max_carnivore_age 60 // muerte por edad
 #define max_herbivore_age 80 // muerte por edad
@@ -161,6 +161,7 @@ void update_cell(const Cell& current_cell, const Grid& grid, Grid& next_grid, co
 				int ny = neighbor.second;
 				if (grid[nx][ny].species == Species::Empty && double(random % 100) < (plant_reproduction_chance * 100.0)) {
 					next_grid[nx][ny] = Cell(Species::Plant);
+					break;
 				}
 			}
 			break;
@@ -308,7 +309,7 @@ void simulate(Grid& grid) {
 		#pragma omp parallel for num_threads(num_threads)
 		for (int i = 0; i < grid_size; ++i) {
 			for (int j = 0; j < grid_size; ++j) {
-				update_cell(grid[i][j], grid, next_grid, i, j, random * i / (j+10) + tick);
+				update_cell(grid[i][j], grid, next_grid, i, j, random * i / (j + 10) * j + tick * i);
 			}
 		}
 		grid = next_grid;  // Actualizar la cuadrícula con la nueva generación
