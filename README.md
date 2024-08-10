@@ -15,11 +15,13 @@ Este proyecto simula un ecosistema utilizando OpenMP para paralelizar operacione
 
  Para instalar un compilador compatible con OpenMP:
 
+ #### En Windows:
+Descarga e instala MinGW-w64, que incluye el compilador g++ con soporte para OpenMP.
+
 #### En Linux:
 ```bash
 sudo apt-get install g++
 
 
 
-#### En Windows:
-Descarga e instala MinGW-w64, que incluye el compilador g++ con soporte para OpenMP.
+
