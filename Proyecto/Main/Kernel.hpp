@@ -2,9 +2,6 @@
 
 #include "Shared.hpp"
 
-#define MAX_ITERATIONS 64
-#define BAILOUT 2.0
-
 struct alignas(16) Particle {
 	vec4 pos;
 	vec4 color;
@@ -14,13 +11,6 @@ struct alignas(16) Particle {
 		color(color)
 	{}
 };
-
-vec3 mandelbulb(const vec3& p, const vec1& time);
-vector<Particle> generateMandelbulb(const vec2& gridSize, const vec1& step, const vec1& time);
-
-vec2 mandelbrot(const vec2& c, const vec1& time);
-vector<Particle> generateMandelbrot(const vec2& gridSize, const vec1& step, const vec1& time);
-
 
 vec4 palette(const vec1& time);
 bool getPattern(const vec1& time);

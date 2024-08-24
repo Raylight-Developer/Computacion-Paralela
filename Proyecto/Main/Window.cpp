@@ -190,8 +190,6 @@ void Renderer::f_pipeline() {
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
-	//vector<vec4> mandle_brot = generateMandelbrot(GRID_SIZE, SPHERE_RADIUS, d_to_f(current_time));
-	//buffers["ssbo"] = ssboBinding(1, ul_to_u(mandle_brot.size() * sizeof(vec4)), mandle_brot.data());
 	vector<Particle> point_cloud = generatePattern(GRID_SIZE, SPHERE_RADIUS, d_to_f(current_time));
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
