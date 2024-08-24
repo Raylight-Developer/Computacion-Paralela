@@ -9,25 +9,23 @@ vec4 palette(const vec1& time) {
 	return vec4(a + b * cos(6.28318f * (c * time + d)), 1.0);
 }
 
-bool getPattern(vec2 uv, const vec1& time) {
+vec4 getPattern(vec2 uv, const vec1& time) {
 	vec2 uv_0 = uv;
-	vec1 val = 0.0f;
+	vec4 val = vec4(0.0);
 	for (float i = 0.0f; i < 2.0f; i++) {
 		uv = glm::fract(uv * 1.5f) - 0.5f;
 
 		float d = length(uv) * exp(-length(uv_0));
+		vec4 col = palette(length(uv_0) + i*0.4f + time*0.4f);
 
 		d = sin(d * 8.0f + time) / 8.0f;
 		d = abs(d);
 
 		d = pow(0.01f / d, 1.2f);
 
-		val += d;
+		val += col *d;
 	}
-	if (val >= 0.9) {
-		return true;
-	}
-	return false;
+	return val;
 }
 
 vector<Particle> generatePattern(const vec2& gridSize, const vec1& step, const vec1& time) {
@@ -38,11 +36,9 @@ vector<Particle> generatePattern(const vec2& gridSize, const vec1& step, const v
 	for (int x = -grid_size.x; x < grid_size.x; x++) {
 		for (int y = -grid_size.y; y < grid_size.y; y++) {
 			const vec2 uv = i_to_f(vec2(x, y)) * step;
-			if (getPattern(uv, time)) {
-				const vec4 color = palette(length(uv) + time * 0.4);
-				#pragma omp critical
-				points.push_back(Particle(vec4(uv, 0.0f, 0.0f), color));
-			}
+			const vec4 color = getPattern(uv, time);
+			#pragma omp critical
+			points.push_back(Particle(vec4(uv, 0.0f, 0.0f), color));
 		}
 	}
 	return points;

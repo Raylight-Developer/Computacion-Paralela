@@ -35,8 +35,12 @@ void main() {
 	float t_length = MAX_DIST;
 	vec4 color = vec4(0,0,0,1);
 	for (int i = 0; i < point_cloud.length(); i++) {
-		if (intersect_sphere(ray, point_cloud[i].pos.xyz, t_length)) {
-			color = point_cloud[i].color;
+		float t_dist = MAX_DIST;
+		if (intersect_sphere(ray, point_cloud[i].pos.xyz, t_dist)) {
+			if (t_dist < t_length && t_dist > EPSILON) {
+				t_length = t_dist;
+				color = point_cloud[i].color;
+			}
 		}
 	}
 

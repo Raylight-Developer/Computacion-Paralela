@@ -1,6 +1,6 @@
 #include "Window.hpp"
 
-#define SPHERE_RADIUS 0.025f
+#define SPHERE_RADIUS 0.04f
 #define GRID_SIZE vec2(2.0f) / vec2(1.0f, d_to_f(render_aspect_ratio))
 
 #define RENDER_SCALE 0.5
@@ -8,7 +8,7 @@
 Renderer::Renderer() {
 	window = nullptr;
 
-	camera_transform = Transform(dvec3(0, 0, 5));
+	camera_transform = Transform(dvec3(0, 0, 5.5));
 
 	frame_counter = 0;
 	frame_count = 0;
