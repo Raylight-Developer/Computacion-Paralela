@@ -48,11 +48,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)\Include;$(SolutionDir)\Shared\Include;$(IncludePath);C:\Programs\Coding\Lib\imgui-1.90</IncludePath>
-    <OutDir>$(ProjectDir)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(ProjectDir)\Include;$(SolutionDir)\Shared\Include;$(IncludePath);C:\Programs\Coding\Lib\imgui-1.90</IncludePath>
-    <OutDir>$(ProjectDir)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
