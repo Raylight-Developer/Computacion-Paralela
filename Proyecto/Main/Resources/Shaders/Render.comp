@@ -13,7 +13,7 @@ bool intersect_sphere(in Ray ray, in vec3 sphere, out float t) {
 	vec3 CO = ray.origin - sphere;
 	float a = dot(ray.direction, ray.direction);
 	float b = 2.0*dot(ray.direction, CO);
-	float c = dot(CO, CO) - SPHERE_RADIUS_SQUARED;
+	float c = dot(CO, CO) - sphere_radius*sphere_radius;
 	float delta = b*b - 4.0*a*c;
 	if(delta < 0.0) {
 		return false;
@@ -35,8 +35,8 @@ void main() {
 	float t_length = MAX_DIST;
 	vec4 color = vec4(0,0,0,1);
 	for (int i = 0; i < point_cloud.length(); i++) {
-		if (intersect_sphere(ray, point_cloud[i].xyz, t_length)) {
-			color = vec4(1);
+		if (intersect_sphere(ray, point_cloud[i].pos.xyz, t_length)) {
+			color = point_cloud[i].color;
 		}
 	}
 

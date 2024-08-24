@@ -2,12 +2,29 @@
 
 #include "Shared.hpp"
 
-#define MAX_ITERATIONS 1000
-#define BAILOUT  2.0
-#define POWER  8.0
+#define MAX_ITERATIONS 64
+#define BAILOUT 2.0
 
-vec3 mandelbulb(const vec3& p, const vec1& power);
-vector<vec4> generateMandelbulb(const vec1& gridSize, const vec1& step, const vec1& power);
+struct alignas(16) Particle {
+	vec4 pos;
+	vec4 color;
+
+	Particle(const vec4& pos = vec4(0.0), const vec4& color = vec4(1.0)) :
+		pos(pos),
+		color(color)
+	{}
+};
+
+vec3 mandelbulb(const vec3& p, const vec1& time);
+vector<Particle> generateMandelbulb(const vec2& gridSize, const vec1& step, const vec1& time);
+
+vec2 mandelbrot(const vec2& c, const vec1& time);
+vector<Particle> generateMandelbrot(const vec2& gridSize, const vec1& step, const vec1& time);
+
+
+vec4 palette(const vec1& time);
+bool getPattern(const vec1& time);
+vector<Particle> generatePattern(const vec2& gridSize, const vec1& step, const vec1& time);
 
 enum struct Rotation_Type {
 	QUATERNION,

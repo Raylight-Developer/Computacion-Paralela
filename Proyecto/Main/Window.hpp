@@ -42,6 +42,8 @@ struct Renderer {
 
 	uint view_layer;
 
+	unordered_map<string, GLuint> buffers;
+
 	Renderer();
 
 	void init();
@@ -57,6 +59,8 @@ struct Renderer {
 	void guiLoop();
 	void gameLoop();
 	void displayLoop();
+
+	void resize();
 
 	static void framebufferSize(GLFWwindow* window, int width, int height);
 	static void cursorPos(GLFWwindow* window, dvec1 xpos, dvec1 ypos);

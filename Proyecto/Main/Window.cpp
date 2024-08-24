@@ -1,10 +1,14 @@
 #include "Window.hpp"
 
+#define SPHERE_RADIUS 0.025f
+#define GRID_SIZE vec2(2.0f) / vec2(1.0f, d_to_f(render_aspect_ratio))
+
+#define RENDER_SCALE 0.5
 
 Renderer::Renderer() {
 	window = nullptr;
 
-	camera_transform = Transform(dvec3(0, 0, 10));
+	camera_transform = Transform(dvec3(0, 0, 5));
 
 	frame_counter = 0;
 	frame_count = 0;
@@ -13,7 +17,7 @@ Renderer::Renderer() {
 	display_resolution = uvec2(3840U, 2160U);
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
 
-	render_resolution = uvec2(2100U, 900U);
+	render_resolution = d_to_u(u_to_d(display_resolution) * RENDER_SCALE);
 	render_aspect_ratio = u_to_d(render_resolution.x) / u_to_d(render_resolution.y);
 
 	recompile = false;
@@ -58,6 +62,7 @@ void Renderer::initGlfw() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -66,16 +71,7 @@ void Renderer::initGlfw() {
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
 	last_mouse = glm::dvec2(display_resolution) / 2.0;
 
-	window = glfwCreateWindow(display_resolution.x, display_resolution.y, "Runtime", NULL, NULL);
-
-	//SHADER::Texture icon = SHADER::Texture();
-	//if (icon.loadFromFile("./Resources/Icon.png")) {
-	//	GLFWimage image_icon;
-	//	image_icon.width = icon.resolution.x;
-	//	image_icon.height = icon.resolution.y;
-	//	image_icon.pixels = icon.data.data();
-	//	glfwSetWindowIcon(window, 1, &image_icon);
-	//}
+	window = glfwCreateWindow(display_resolution.x, display_resolution.y, "Proyect", NULL, NULL);
 
 	if (window == NULL) {
 		cout << "Failed to create GLFW window" << endl;
@@ -149,11 +145,55 @@ void Renderer::systemInfo() {
 
 void Renderer::f_pipeline() {
 	glViewport(0, 0, display_resolution.x , display_resolution.y);
-	vector<vec4> mandle_bub = generateMandelbulb(10.0, 0.1, 5.0);
-	ssboBinding(1, mandle_bub.size() * sizeof(vec4), mandle_bub.data());
+	
+	const GLfloat vertices[16] = {
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f,  1.0f, 1.0f, 1.0f,
+		 1.0f, -1.0f, 1.0f, 0.0f,
+	};
+	const GLuint indices[6] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	// Display Quad
+	GLuint VAO, VBO, EBO;
+	glCreateVertexArrays(1, &VAO);
+	glCreateBuffers(1, &VBO);
+	glCreateBuffers(1, &EBO);
+
+	glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glNamedBufferData(EBO, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glEnableVertexArrayAttrib (VAO, 0);
+	glVertexArrayAttribBinding(VAO, 0, 0);
+	glVertexArrayAttribFormat (VAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
+
+	glEnableVertexArrayAttrib (VAO, 1);
+	glVertexArrayAttribBinding(VAO, 1, 0);
+	glVertexArrayAttribFormat (VAO, 1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat));
+
+	glVertexArrayVertexBuffer (VAO, 0, VBO, 0, 4 * sizeof(GLfloat));
+	glVertexArrayElementBuffer(VAO, EBO);
+
+	buffers["compute"] = computeShaderProgram("Render");
+	buffers["display"] = fragmentShaderProgram("Display");
+
+
+	// Compute Output
+	buffers["raw"] = renderLayer(render_resolution);
+
+	glBindVertexArray(VAO);
 }
 
 void Renderer::f_tickUpdate() {
+	glDeleteBuffers(1, &buffers["ssbo"]);
+
+	//vector<vec4> mandle_brot = generateMandelbrot(GRID_SIZE, SPHERE_RADIUS, d_to_f(current_time));
+	//buffers["ssbo"] = ssboBinding(1, ul_to_u(mandle_brot.size() * sizeof(vec4)), mandle_brot.data());
+	vector<Particle> point_cloud = generatePattern(GRID_SIZE, SPHERE_RADIUS, d_to_f(current_time));
+	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 
 void Renderer::guiLoop() {
@@ -218,50 +258,12 @@ void Renderer::gameLoop() {
 }
 
 void Renderer::displayLoop() {
-	const GLfloat vertices[16] = {
-		-1.0f, -1.0f, 0.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f, 1.0f,
-		 1.0f,  1.0f, 1.0f, 1.0f,
-		 1.0f, -1.0f, 1.0f, 0.0f,
-	};
-	const GLuint indices[6] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	// Display Quad
-	GLuint VAO, VBO, EBO;
-	glCreateVertexArrays(1, &VAO);
-	glCreateBuffers(1, &VBO);
-	glCreateBuffers(1, &EBO);
-
-	glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glNamedBufferData(EBO, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glEnableVertexArrayAttrib (VAO, 0);
-	glVertexArrayAttribBinding(VAO, 0, 0);
-	glVertexArrayAttribFormat (VAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
-
-	glEnableVertexArrayAttrib (VAO, 1);
-	glVertexArrayAttribBinding(VAO, 1, 0);
-	glVertexArrayAttribFormat (VAO, 1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat));
-
-	glVertexArrayVertexBuffer (VAO, 0, VBO, 0, 4 * sizeof(GLfloat));
-	glVertexArrayElementBuffer(VAO, EBO);
-
-	GLuint compute_program = computeShaderProgram("Render");
-	GLuint post_program = fragmentShaderProgram("Display");
-
 	const uvec3 compute_layout = uvec3(
 		d_to_u(ceil(u_to_d(render_resolution.x) / 32.0)),
 		d_to_u(ceil(u_to_d(render_resolution.y) / 32.0)),
 		1
 	);
 
-	// Compute Output
-	GLuint raw_render_layer          = renderLayer(render_resolution);
-
-	glBindVertexArray(VAO);
 	while (!glfwWindowShouldClose(window)) {
 		current_time = glfwGetTime();
 		frame_time = current_time - last_time;
@@ -273,13 +275,15 @@ void Renderer::displayLoop() {
 		const vec3 y_vector = matrix[1];
 		const vec3 z_vector = -matrix[2];
 
-		const vec1 focal_length = 0.05;
-		const vec1 sensor_size  = 0.036;
+		const vec1 focal_length = 0.05f;
+		const vec1 sensor_size  = 0.036f;
 
 		vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
 		vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
 		vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 		f_tickUpdate();
+
+		GLuint compute_program = buffers["compute"];
 
 		glUseProgram(compute_program);
 		glUniform1ui(glGetUniformLocation(compute_program, "frame_count"), ul_to_u(runframe));
@@ -294,19 +298,23 @@ void Renderer::displayLoop() {
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_u"),  1, value_ptr(projection_u));
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_v"),  1, value_ptr(projection_v));
 
-		glBindImageTexture(0, raw_render_layer, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_RADIUS * 0.5f);
+
+		glBindImageTexture(0, buffers["raw"], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 		glDispatchCompute(compute_layout.x, compute_layout.y, compute_layout.z);
 		
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-		glUseProgram(post_program);
+		GLuint display_program = buffers["display"];
+
+		glUseProgram(display_program);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glUniform1f (glGetUniformLocation(post_program, "display_aspect_ratio"), d_to_f(display_aspect_ratio));
-		glUniform1f (glGetUniformLocation(post_program, "render_aspect_ratio") , d_to_f(render_aspect_ratio));
-		glUniform1ui(glGetUniformLocation(post_program, "view_layer"), view_layer);
-		glUniform1ui(glGetUniformLocation(post_program, "debug"), static_cast<GLuint>(debug));
-		bindRenderLayer(post_program, 0, raw_render_layer, "raw_render_layer");
+		glUniform1f (glGetUniformLocation(display_program, "display_aspect_ratio"), d_to_f(display_aspect_ratio));
+		glUniform1f (glGetUniformLocation(display_program, "render_aspect_ratio") , d_to_f(render_aspect_ratio));
+		glUniform1ui(glGetUniformLocation(display_program, "view_layer"), view_layer);
+		glUniform1ui(glGetUniformLocation(display_program, "debug"), static_cast<GLuint>(debug));
+		bindRenderLayer(display_program, 0, buffers["raw"], "raw_render_layer");
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		frame_counter++;
@@ -314,7 +322,7 @@ void Renderer::displayLoop() {
 		if (reset) reset = false;
 		if (recompile) {
 			compute_program = computeShaderProgram("Render");
-			post_program = fragmentShaderProgram("Post");
+			display_program = fragmentShaderProgram("Post");
 			recompile = false;
 		}
 
@@ -331,15 +339,18 @@ void Renderer::displayLoop() {
 	}
 }
 
+void Renderer::resize() {
+	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
+	current_mouse = dvec2(display_resolution) / 2.0;
+	last_mouse = current_mouse;
+	runframe = 0;
+}
+
 void Renderer::framebufferSize(GLFWwindow* window, int width, int height) {
 	Renderer* instance = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
 	glViewport(0, 0, width, height);
 	instance->display_resolution.x = width;
 	instance->display_resolution.y = height;
-	instance->display_aspect_ratio = u_to_d(instance->display_resolution.x) / u_to_d(instance->display_resolution.y);
-	instance->current_mouse = dvec2(instance->display_resolution) / 2.0;
-	instance->last_mouse = instance->current_mouse;
-	instance->runframe = 0;
 }
 
 void Renderer::cursorPos(GLFWwindow* window, double xpos, double ypos) {
