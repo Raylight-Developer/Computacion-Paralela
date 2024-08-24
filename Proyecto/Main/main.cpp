@@ -7,8 +7,8 @@
 int main(int argc, char* argv[]) {
 	SetConsoleOutputCP(65001);
 
-	vec1 sphereRadius = 0.025f;
-	vec1 sphereDisplayRadius = 0.025f * 0.5f * 1.05f;
+	vec1 sphereRadius = 0.05f;
+	vec1 sphereDisplayRadius = 0.05f * 0.5f * 1.05f;
 	vec1 gridSize = 2.0f;
 	vec1 iterations = 4.0f;
 	vec1 renderScale = 0.25f;

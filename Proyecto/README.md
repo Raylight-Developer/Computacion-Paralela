@@ -4,12 +4,13 @@ Arturo Argutea - 21527
 
 # Demo
 
-[Demo Video](Demo.mp4)
 
-Smooth Rendering:
+REALTIME:
+[Demo Video](Demo.mp4)
 ![alt text](image.png)
 
-Different Parameters:
+ULTRA Quality:
+[Demo Video](Demo-2.mp4)
 ![alt text](image-1.png)
 
 # 1080p
