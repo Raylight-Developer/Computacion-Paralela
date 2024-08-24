@@ -108,7 +108,7 @@ void Renderer::systemInfo() {
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_cnt[0]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_cnt[1]);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_cnt[2]);
-	LOG ENDL << "Max work groups per compute shader" <<
+	LOG << "Max work groups per compute shader" <<
 		" x:" << work_grp_cnt[0] <<
 		" y:" << work_grp_cnt[1] <<
 		" z:" << work_grp_cnt[2];
@@ -141,6 +141,8 @@ void Renderer::systemInfo() {
 	GLint uniformBufferOffsetAlignment;
 	glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &uniformBufferOffsetAlignment);
 	LOG ENDL << "SSBO struct alignment multiplier: " << uniformBufferOffsetAlignment;
+	LOG ENDL;
+	FLUSH;
 }
 
 void Renderer::f_pipeline() {
@@ -276,9 +278,9 @@ void Renderer::displayLoop() {
 		const vec1 focal_length = 0.05f;
 		const vec1 sensor_size  = 0.036f;
 
-		vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
-		vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
-		vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
+		const vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
+		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
+		const vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 		f_tickUpdate();
 
 		GLuint compute_program = buffers["compute"];
