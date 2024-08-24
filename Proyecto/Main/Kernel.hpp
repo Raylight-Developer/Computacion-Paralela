@@ -13,8 +13,8 @@ struct alignas(16) Particle {
 };
 
 vec4 palette(const vec1& time);
-bool getPattern(const vec1& time);
-vector<Particle> generatePattern(const vec2& gridSize, const vec1& step, const vec1& time);
+vec4 getPattern(vec2 uv, const vec1& steps, const vec1& time);
+vector<Particle> generatePattern(const vec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time);
 
 enum struct Rotation_Type {
 	QUATERNION,

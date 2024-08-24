@@ -80,7 +80,7 @@ void checkShaderCompilation(const GLuint& shader, const string& shader_code) {
 		glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
 		LOG ENDL ENDL ANSI_R << "[OpenGL]" ANSI_RESET << " Shader Compilation Failed: "; FLUSH;
 		printShaderErrorWithContext(shader_code, infoLog);
-		exit(1);
+		exit(100);
 	}
 }
 
@@ -91,7 +91,7 @@ void checkProgramLinking(const GLuint& program) {
 		GLchar infoLog[512];
 		glGetProgramInfoLog(program, sizeof(infoLog), nullptr, infoLog);
 		LOG ENDL ENDL ANSI_R << "[OpenGL]" ANSI_RESET << " Program Linking Failed: " << infoLog; FLUSH;
-		exit(1);
+		exit(101);
 	}
 }
 

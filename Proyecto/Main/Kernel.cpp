@@ -9,10 +9,10 @@ vec4 palette(const vec1& time) {
 	return vec4(a + b * cos(6.28318f * (c * time + d)), 1.0);
 }
 
-vec4 getPattern(vec2 uv, const vec1& time) {
+vec4 getPattern(vec2 uv, const vec1& steps, const vec1& time) {
 	vec2 uv_0 = uv;
 	vec4 val = vec4(0.0);
-	for (float i = 0.0f; i < 2.0f; i++) {
+	for (float i = 0.0f; i < steps; i++) {
 		uv = glm::fract(uv * 1.5f) - 0.5f;
 
 		float d = length(uv) * exp(-length(uv_0));
@@ -28,15 +28,15 @@ vec4 getPattern(vec2 uv, const vec1& time) {
 	return val;
 }
 
-vector<Particle> generatePattern(const vec2& gridSize, const vec1& step, const vec1& time) {
+vector<Particle> generatePattern(const vec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time) {
 	vector<Particle> points;
-	const ivec2 grid_size = f_to_i(gridSize / step);
+	const ivec2 grid_size_normal = f_to_i(grid_size / particle_size);
 
 	#pragma omp parallel for collapse(2)
-	for (int x = -grid_size.x; x < grid_size.x; x++) {
-		for (int y = -grid_size.y; y < grid_size.y; y++) {
-			const vec2 uv = i_to_f(vec2(x, y)) * step;
-			const vec4 color = getPattern(uv, time);
+	for (int x = -grid_size_normal.x; x < grid_size_normal.x; x++) {
+		for (int y = -grid_size_normal.y; y < grid_size_normal.y; y++) {
+			const vec2 uv = i_to_f(vec2(x, y)) * particle_size;
+			const vec4 color = getPattern(uv, steps, time);
 			#pragma omp critical
 			points.push_back(Particle(vec4(uv, 0.0f, 0.0f), color));
 		}

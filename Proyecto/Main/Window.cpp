@@ -1,11 +1,19 @@
 #include "Window.hpp"
 
-#define SPHERE_RADIUS 0.04f
-#define GRID_SIZE vec2(2.0f) / vec2(1.0f, d_to_f(render_aspect_ratio))
 
-#define RENDER_SCALE 0.5
-
-Renderer::Renderer() {
+Renderer::Renderer(
+	const vec1& SPHERE_RADIUS,
+	const vec1& SPHERE_DISPLAY_RADIUS,
+	const vec1& GRID_SIZE,
+	const vec1& ITERATIONS,
+	const vec1& RENDER_SCALE
+) :
+	SPHERE_RADIUS(SPHERE_RADIUS),
+	SPHERE_DISPLAY_RADIUS(SPHERE_DISPLAY_RADIUS),
+	GRID_SIZE(GRID_SIZE),
+	ITERATIONS(ITERATIONS),
+	RENDER_SCALE(RENDER_SCALE)
+{
 	window = nullptr;
 
 	camera_transform = Transform(dvec3(0, 0, 5.5));
@@ -17,7 +25,7 @@ Renderer::Renderer() {
 	display_resolution = uvec2(3840U, 2160U);
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
 
-	render_resolution = d_to_u(u_to_d(display_resolution) * RENDER_SCALE);
+	render_resolution = d_to_u(u_to_d(display_resolution) * f_to_d(RENDER_SCALE));
 	render_aspect_ratio = u_to_d(render_resolution.x) / u_to_d(render_resolution.y);
 
 	recompile = false;
@@ -47,13 +55,14 @@ void Renderer::init() {
 	displayLoop();
 }
 
-void Renderer::exit() {
+void Renderer::quit() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+	exit(0);
 }
 
 void Renderer::initGlfw() {
@@ -192,7 +201,7 @@ void Renderer::f_pipeline() {
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
-	vector<Particle> point_cloud = generatePattern(GRID_SIZE, SPHERE_RADIUS, d_to_f(current_time));
+	vector<Particle> point_cloud = generatePattern(GRID_SIZE / vec2(1.0, render_aspect_ratio), SPHERE_RADIUS, ITERATIONS, d_to_f(current_time));
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 
@@ -298,7 +307,7 @@ void Renderer::displayLoop() {
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_u"),  1, value_ptr(projection_u));
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_v"),  1, value_ptr(projection_v));
 
-		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_RADIUS * 0.5f);
+		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_DISPLAY_RADIUS);
 
 		glBindImageTexture(0, buffers["raw"], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 

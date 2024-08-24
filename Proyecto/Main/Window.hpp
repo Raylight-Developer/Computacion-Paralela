@@ -13,6 +13,12 @@
 struct Renderer {
 	GLFWwindow* window;
 
+	vec1 SPHERE_RADIUS;
+	vec1 SPHERE_DISPLAY_RADIUS;
+	vec1 GRID_SIZE;
+	vec1 ITERATIONS;
+	vec1 RENDER_SCALE;
+
 	Transform camera_transform;
 
 	dvec1 display_aspect_ratio;
@@ -44,10 +50,16 @@ struct Renderer {
 
 	unordered_map<string, GLuint> buffers;
 
-	Renderer();
+	Renderer(
+		const vec1& SPHERE_RADIUS = 0.01f,
+		const vec1& SPHERE_DISPLAY_RADIUS = 0.01 * 0.5f * 1.5f,
+		const vec1& GRID_SIZE = 2.0f,
+		const vec1& ITERATIONS = 4.0f,
+		const vec1& RENDER_SCALE = 0.125
+	);
 
 	void init();
-	void exit();
+	void quit();
 
 	void initGlfw();
 	void initImGui();
