@@ -20,3 +20,7 @@ struct Ray {
 #define EPSILON  0.0001
 
 #define MAX_UINT 4294967295
+
+
+
+#define SPHERE_RADIUS_SQUARED 0.001

@@ -4,6 +4,8 @@
 Renderer::Renderer() {
 	window = nullptr;
 
+	camera_transform = Transform(dvec3(0, 0, 10));
+
 	frame_counter = 0;
 	frame_count = 0;
 	runframe = 0;
@@ -18,7 +20,7 @@ Renderer::Renderer() {
 	reset = false;
 	debug = false;
 
-	camera_move_sensitivity = 0.75;
+	camera_move_sensitivity = 1.5;
 	camera_view_sensitivity = 2.5;
 	keys = vector(348, false);
 	current_mouse = dvec2(display_resolution) / 2.0;
@@ -97,10 +99,8 @@ void Renderer::initImGui() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.FontGlobalScale = 1.25f;// 2.25f;
-	io.IniFilename = "./Resources/GUI_state.ini";// nullptr;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.FontGlobalScale = 1.75f;
+	io.IniFilename = nullptr;
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -149,10 +149,11 @@ void Renderer::systemInfo() {
 
 void Renderer::f_pipeline() {
 	glViewport(0, 0, display_resolution.x , display_resolution.y);
+	vector<vec4> mandle_bub = generateMandelbulb(10.0, 0.1, 5.0);
+	ssboBinding(1, mandle_bub.size() * sizeof(vec4), mandle_bub.data());
 }
 
 void Renderer::f_tickUpdate() {
-	//ssboBinding(5, ul_to_u(gpu_data->trianglesSize()  ), gpu_data->triangles.data());
 }
 
 void Renderer::guiLoop() {
@@ -175,26 +176,32 @@ void Renderer::guiLoop() {
 
 void Renderer::gameLoop() {
 	if (keys[GLFW_KEY_D]) {
+		camera_transform.moveLocal(dvec3(1.0, 0.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
 	if (keys[GLFW_KEY_A]) {
+		camera_transform.moveLocal(dvec3(-1.0, 0.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
 	if (keys[GLFW_KEY_E] || keys[GLFW_KEY_SPACE]) {
+		camera_transform.moveLocal(dvec3(0.0, 1.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
 	if (keys[GLFW_KEY_Q] || keys[GLFW_KEY_LEFT_CONTROL]) {
+		camera_transform.moveLocal(dvec3(0.0, -1.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
 	if (keys[GLFW_KEY_W]) {
+		camera_transform.moveLocal(dvec3(0.0, 0.0, -1.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
 	if (keys[GLFW_KEY_S]) {
+		camera_transform.moveLocal(dvec3(0.0, 0.0, 1.0)* camera_move_sensitivity * frame_time);
 		reset = true;
 		runframe = 0;
 	}
@@ -202,6 +209,7 @@ void Renderer::gameLoop() {
 		const dvec1 xoffset = (last_mouse.x - current_mouse.x) * frame_time * camera_view_sensitivity;
 		const dvec1 yoffset = (last_mouse.y - current_mouse.y) * frame_time * camera_view_sensitivity;
 
+		camera_transform.rotate(dvec3(yoffset, xoffset, 0.0));
 		reset = true;
 		runframe = 0;
 
@@ -261,6 +269,16 @@ void Renderer::displayLoop() {
 		window_time += frame_time;
 
 		gameLoop();
+		const mat4 matrix = d_to_f(glm::yawPitchRoll(camera_transform.euler_rotation.y * DEG_RAD, camera_transform.euler_rotation.x * DEG_RAD, camera_transform.euler_rotation.z * DEG_RAD));
+		const vec3 y_vector = matrix[1];
+		const vec3 z_vector = -matrix[2];
+
+		const vec1 focal_length = 0.05;
+		const vec1 sensor_size  = 0.036;
+
+		vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
+		vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
+		vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 		f_tickUpdate();
 
 		glUseProgram(compute_program);
@@ -270,6 +288,12 @@ void Renderer::displayLoop() {
 		glUniform2ui(glGetUniformLocation(compute_program, "resolution"), render_resolution.x, render_resolution.y);
 		glUniform1ui(glGetUniformLocation(compute_program, "reset"), static_cast<GLuint>(reset));
 		glUniform1ui(glGetUniformLocation(compute_program, "debug"), static_cast<GLuint>(debug));
+
+		glUniform3fv(glGetUniformLocation(compute_program, "camera_pos"),  1, value_ptr(d_to_f(camera_transform.position)));
+		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_uv"), 1, value_ptr(projection_center));
+		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_u"),  1, value_ptr(projection_u));
+		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_v"),  1, value_ptr(projection_v));
+
 		glBindImageTexture(0, raw_render_layer, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 		glDispatchCompute(compute_layout.x, compute_layout.y, compute_layout.z);

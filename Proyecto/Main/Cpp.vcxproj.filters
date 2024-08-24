@@ -71,6 +71,9 @@
     <ClCompile Include="..\Shared\Include\External\glad.c">
       <Filter>Shared\External</Filter>
     </ClCompile>
+    <ClCompile Include="Kernel.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Shared\Include\Glm.hpp">
@@ -132,6 +135,9 @@
     </ClInclude>
     <ClInclude Include="..\Shared\Include\External\stb_image.h">
       <Filter>Shared\External</Filter>
+    </ClInclude>
+    <ClInclude Include="Kernel.hpp">
+      <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

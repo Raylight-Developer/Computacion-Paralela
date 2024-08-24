@@ -8,9 +8,12 @@
 #include "imgui-1.90/backends/imgui_impl_opengl3.h"
 
 #include "OpenGL.hpp"
+#include "Kernel.hpp"
 
 struct Renderer {
 	GLFWwindow* window;
+
+	Transform camera_transform;
 
 	dvec1 display_aspect_ratio;
 	dvec1 render_aspect_ratio;
