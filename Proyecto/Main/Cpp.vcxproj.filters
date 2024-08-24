@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{297576e6-9b03-4ac6-a40a-217bc2e52979}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\Source">
+      <UniqueIdentifier>{a6b4337a-fe8b-4f4d-a507-5fa6a631f5ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\External">
+      <UniqueIdentifier>{824ff20f-2470-4ab4-b145-8ab754f0b8ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\Include">
+      <UniqueIdentifier>{126638fe-e4ba-4085-b813-a6beabcf9f30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\External\Imgui">
+      <UniqueIdentifier>{2ae09433-3c17-4481-86ac-cb1156227676}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shared\External\Imgui\Impl">
+      <UniqueIdentifier>{29ac07c9-ac5b-40f0-8767-d7c11af34489}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Source\Lace.cpp">
+      <Filter>Shared\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Source\OpenGl.cpp">
+      <Filter>Shared\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Source\Ops.cpp">
+      <Filter>Shared\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Source\Session.cpp">
+      <Filter>Shared\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\imgui.cpp">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\imgui_demo.cpp">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\imgui_draw.cpp">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\imgui_tables.cpp">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\imgui_widgets.cpp">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\backends\imgui_impl_glfw.cpp">
+      <Filter>Shared\External\Imgui\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Programs\Coding\Lib\imgui-1.90\backends\imgui_impl_opengl3.cpp">
+      <Filter>Shared\External\Imgui\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Include\External\glad.c">
+      <Filter>Shared\External</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\Include\Glm.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Include.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Lace.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Macros.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\OpenGl.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Ops.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Session.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Shared.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\String.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\Types.hpp">
+      <Filter>Shared\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.hpp">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imstb_truetype.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imconfig.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imgui.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imgui_internal.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imstb_rectpack.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\imstb_textedit.h">
+      <Filter>Shared\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\backends\imgui_impl_glfw.h">
+      <Filter>Shared\External\Imgui\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Programs\Coding\Lib\imgui-1.90\backends\imgui_impl_opengl3.h">
+      <Filter>Shared\External\Imgui\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Include\External\stb_image.h">
+      <Filter>Shared\External</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

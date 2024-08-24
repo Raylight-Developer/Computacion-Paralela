@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cpp", "Main\Cpp.vcxproj", "{2A5602F9-65DA-4456-A121-96935301BCDB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shared", "Shared\Shared.vcxproj", "{0347B4A5-C4C4-41E5-88E0-8A5766F2BE5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A5602F9-65DA-4456-A121-96935301BCDB}.Debug|x64.ActiveCfg = Debug|x64
+		{2A5602F9-65DA-4456-A121-96935301BCDB}.Debug|x64.Build.0 = Debug|x64
+		{2A5602F9-65DA-4456-A121-96935301BCDB}.Release|x64.ActiveCfg = Release|x64
+		{2A5602F9-65DA-4456-A121-96935301BCDB}.Release|x64.Build.0 = Release|x64
+		{0347B4A5-C4C4-41E5-88E0-8A5766F2BE5E}.Debug|x64.ActiveCfg = Debug|x64
+		{0347B4A5-C4C4-41E5-88E0-8A5766F2BE5E}.Debug|x64.Build.0 = Debug|x64
+		{0347B4A5-C4C4-41E5-88E0-8A5766F2BE5E}.Release|x64.ActiveCfg = Release|x64
+		{0347B4A5-C4C4-41E5-88E0-8A5766F2BE5E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BE995B7-0463-4553-A2FA-221F25578602}
+	EndGlobalSection
+EndGlobal

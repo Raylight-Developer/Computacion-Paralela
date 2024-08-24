@@ -32,3 +32,9 @@
 *.app
 /MicroProyecto/.vs
 /MicroProyecto/x64
+/.vs
+/Proyecto/.vs
+/Proyecto/Main/x64
+/Proyecto/Shared/x64
+/Proyecto/x64
+*.user

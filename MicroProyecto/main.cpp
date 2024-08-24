@@ -355,19 +355,29 @@ void print_grid(const Grid& grid) {
  */
 void simulate(Grid& grid) {
 	for (int tick = 0; tick < num_ticks; ++tick) {
-		Grid next_grid = grid;  // Crear una nueva cuadrícula para la próxima generación
+		Grid next_grid = grid;
 		srand(tick);
 		int random = std::rand();
-		#pragma omp parallel for num_threads(num_threads)
-		for (int i = 0; i < grid_size; ++i) {
-			for (int j = 0; j < grid_size; ++j) {
-				update_cell(grid[i][j], grid, next_grid, i, j, random * i / (j + 10) * j + tick * i);
+
+		#pragma omp parallel num_threads(num_threads)
+		{
+			#pragma omp for collapse(2)
+			for (int i = 0; i < grid_size; ++i) {
+				for (int j = 0; j < grid_size; ++j) {
+					update_cell(grid[i][j], grid, next_grid, i, j, random * i / (j + 10) * j + tick * i);
+				}
 			}
-		}
-		grid = next_grid;  // Actualizar la cuadrícula con la nueva generación
-		if (tick % tick_update == 0) {
-			cout << endl << endl << "Tick: " << tick + 1;
-			print_grid(grid);
+			#pragma omp single
+			{
+				grid = next_grid;
+			}
+			#pragma omp master
+			{
+				if (tick % tick_update == 0) {
+					cout << endl << endl << "Tick: " << tick + 1;
+					print_grid(grid);
+				}
+			}
 		}
 	}
 	print_grid(grid);
