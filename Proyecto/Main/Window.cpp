@@ -215,8 +215,8 @@ void Renderer::guiLoop() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::Begin("Info");
-	ImGui::Text(("~CPU: " + to_string(int(round(100.0 - (cpu_time / current_time) * 100.0))) + "%%").c_str());
-	ImGui::Text(("~GPU: " + to_string(int(round((cpu_time / current_time) * 100.0))) + "%%").c_str());
+	ImGui::Text(("Frame Delta: " + to_string(frame_time) + "ms").c_str());
+	ImGui::Text(("Non-OpenMp Delta: " + to_string(open_mp_delta) + "ms").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
 	ImGui::End();
 
@@ -292,10 +292,9 @@ void Renderer::displayLoop() {
 		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size;
 		const vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 
-
-		const dvec1 current_tick_time = glfwGetTime();
+		const dvec1 current_omp_time = glfwGetTime();
 		f_tickUpdate();
-		cpu_time += glfwGetTime() - current_tick_time;
+		open_mp_delta = glfwGetTime() - current_omp_time;
 
 		GLuint compute_program = buffers["compute"];
 
@@ -332,6 +331,7 @@ void Renderer::displayLoop() {
 		glUniform1ui(glGetUniformLocation(display_program, "debug"), static_cast<GLuint>(debug));
 		bindRenderLayer(display_program, 0, buffers["raw"], "raw_render_layer");
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 
 		frame_counter++;
 		runframe++;

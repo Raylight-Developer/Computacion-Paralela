@@ -37,6 +37,7 @@ void generatePattern(vector<Particle>& points, const uvec2& grid_size, const vec
 			const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 			const vec4 color = getPattern(uv, steps, time);
 			const uint64 index = x * grid_size.y * 2 + y;
+			#pragma critical
 			points[index] = Particle(vec4(uv, 0.01/color.x, 0.0f), color);
 		}
 	}

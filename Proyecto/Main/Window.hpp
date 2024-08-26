@@ -30,7 +30,6 @@ struct Renderer {
 
 	uint   frame_counter;
 	uint   frame_count;
-	dvec1  cpu_time;
 	uint64 runframe;
 
 	bool recompile;
@@ -44,6 +43,7 @@ struct Renderer {
 	dvec2 current_mouse;
 	dvec2 last_mouse;
 
+	dvec1 open_mp_delta;
 	dvec1 current_time;
 	dvec1 window_time;
 	dvec1 frame_time;
