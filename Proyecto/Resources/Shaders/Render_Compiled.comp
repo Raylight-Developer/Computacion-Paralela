@@ -1,0 +1,202 @@
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+#version 460
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+struct Particle {
+	vec4 pos;
+	vec4 col;
+};
+// INTERNAL ---------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+struct AABB {
+	vec3 pmin;
+	vec3 pmax;
+};
+struct BVH {
+	AABB box;
+	uvec2 rows;
+};
+struct Ray {
+	vec3  origin;
+	vec3  direction;
+};
+// DEFINITIONS ------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+#define TWO_PI   6.28318530718
+#define PI       3.14159265359
+#define HALF_PI  1.57079632679
+#define INV_PI   0.31830988618
+#define DEG_RAD  0.01745329252
+#define RAD_DEG  0.01745329252
+#define MAX_DIST 1000.0
+#define EPSILON  0.00001
+#define MAX_UINT 4294967295
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout(rgba32f, binding = 0) writeonly uniform image2D raw_render_layer;
+layout(std430, binding = 1) buffer PointDataBuffer {
+	Particle point_cloud[];
+};
+uniform uint  frame_count;
+uniform float aspect_ratio;
+uniform float current_time;
+uniform uvec2 resolution;
+uniform bool  reset;
+uniform bool  debug;
+uniform vec3 camera_pos;
+uniform vec3 camera_p_uv;
+uniform vec3 camera_p_u;
+uniform vec3 camera_p_v;
+uniform ivec2 grid_size;
+uniform float sphere_radius;
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+float f_lerp(in float a,in float b, in float t) {
+	return a + t * (b - a);
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+vec3 f_lerp(in vec3 a,in vec3 b, in float t) {
+	return a + t * (b - a);
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+float f_mapFloat(float from_min, float from_max, float to_min, float to_max, float value) {
+	return (to_min + ((to_max - to_min) / (from_max - from_min)) * (value - from_min));
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+float f_mapFloatClamp(float from_min, float from_max, float to_min, float to_max, float value) {
+	if (value > from_max) return to_max;
+	else if (value < from_min) return to_min;
+	else return (to_min + ((to_max - to_min) / (from_max - from_min)) * (value - from_min));
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+vec2 f_mapVec2(vec2 from_min, vec2 from_max, vec2 to_min, vec2 to_max, vec2 value) {
+	return vec2(f_mapFloat(from_min.x, from_max.x, to_min.x, to_max.x, value.x), f_mapFloat(from_min.y, from_max.y, to_min.y, to_max.y, value.y));
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+uint f_tea(in uint val0, in uint val1) {
+	uint v0 = val0;
+	uint v1 = val1;
+	uint s0 = 0;
+	for (uint n = 0; n < 16; n++) {
+		s0 += 0x9e3779b9;
+		v0 += ((v1 << 4) + 0xa341316c) ^ (v1 + s0) ^ ((v1 >> 5) + 0xc8013ea4);
+		v1 += ((v0 << 4) + 0xad90777d) ^ (v0 + s0) ^ ((v0 >> 5) + 0x7e95761e);
+	}
+	return v0;
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+uint f_pcg(inout uint state) {
+	uint prev = state * 747796405u + 2891336453u;
+	uint word = ((prev >> ((prev >> 28u) + 4u)) ^ prev) * 277803737u;
+	state = prev;
+	return (word >> 22u) ^ word;
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+float f_rand(inout uint seed) { // [0 to 1]
+	uint r = f_pcg(seed);
+	return uintBitsToFloat(0x3f800000 | (r >> 9)) - 1.0f;
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+float f_randAround(inout uint seed, int range) { // [-1 to 1]
+	uint r = f_pcg(seed);
+	return f_mapFloat(0, 1, -range, range, uintBitsToFloat(0x3f800000 | (r >> 9)) - 1.0f);
+}
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+bool f_raySphereIntersection(in Ray ray, in vec3 sphere, out float t) {
+	vec3 CO = ray.origin - sphere;
+	float a = dot(ray.direction, ray.direction);
+	float b = 2.0*dot(ray.direction, CO);
+	float c = dot(CO, CO) - sphere_radius*sphere_radius;
+	float delta = b*b - 4.0*a*c;
+	if(delta < 0.0) {
+		return false;
+	}
+	t = (-b-sqrt(delta)) / (2.0*a);
+	return true;
+}
+bool f_rayBvhIntersection(in Ray ray, in AABB box) {
+	vec3 tMin = (box.pmin - ray.origin) * ray.direction;
+	vec3 tMax = (box.pmax - ray.origin) * ray.direction;
+	vec3 t1 = min(tMin, tMax);
+	vec3 t2 = max(tMin, tMax);
+	float tNear = max(max(t1.x, t1.y), t1.z);
+	float tFar = min(min(t2.x, t2.y), t2.z);
+	if (tNear > tFar || tFar < 0.0) {
+		return false;
+	}
+	return true;
+}
+Ray f_cameraRay(vec2 uv) {
+	return Ray(camera_pos, normalize(camera_p_uv + (camera_p_u * uv.x) + (camera_p_v * uv.y) - camera_pos));
+}
+void main() {
+	ivec2 pixel_id = ivec2(gl_GlobalInvocationID.xy);
+	vec2 uv = (pixel_id - 1 - vec2(resolution) / 2.0) / float(max(resolution.x, resolution.y));
+	Ray ray = f_cameraRay(uv);
+	Ray invRay = ray;
+	invRay.direction = 1.0 / (invRay.direction + EPSILON);
+	float t_length = MAX_DIST;
+	float t_dist = MAX_DIST;
+	vec4 color = vec4(0,0,0,1);
+	const float grid_width = float(grid_size.x) * sphere_radius;
+	const uint  x_cut_size =  grid_size.x / 8u;
+	const float cut_width = grid_width / 4.0;
+	
+	const float grid_height = float(grid_size.y) * sphere_radius;
+	const uint  y_cut_size =  grid_size.y / 6u;
+	const float cut_height = grid_height / 3.0;
+	const float padding = sphere_radius * 3.0;
+	const BVH bvh_x[8] = {
+		BVH(AABB(vec3(-grid_width                  - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + padding, 0.5)), uvec2(0           , x_cut_size  )),
+		BVH(AABB(vec3(-grid_width + cut_width      - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 2. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size  , x_cut_size*2)),
+		BVH(AABB(vec3(-grid_width + cut_width * 2. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 3. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*2, x_cut_size*3)),
+		BVH(AABB(vec3(-grid_width + cut_width * 3. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 4. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*3, x_cut_size*4)),
+		BVH(AABB(vec3(-grid_width + cut_width * 4. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 5. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*4, x_cut_size*5)),
+		BVH(AABB(vec3(-grid_width + cut_width * 5. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 6. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*5, x_cut_size*6)),
+		BVH(AABB(vec3(-grid_width + cut_width * 6. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 7. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*6, x_cut_size*7)),
+		BVH(AABB(vec3(-grid_width + cut_width * 7. - padding, -grid_height - padding, -0.2), vec3( grid_width                  + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*7, grid_size.x ))
+	};
+	const BVH bvh_y[6] = {
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 5. - padding * 3, -0.2), vec3(grid_width + padding,  grid_height                   + padding * 3, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 4. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 5. + padding * 3, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 3. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 4. + padding * 3, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 2. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 3. + padding * 3, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height      - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 2. + padding * 3, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height                   - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height      + padding * 3, 0.5)), uvec2(0           , y_cut_size  ))
+	};
+	for (uint i = 0; i < bvh_x.length(); i++) {
+		if (f_rayBvhIntersection(invRay, bvh_x[i].box)) {
+			
+			for (uint j = 0; j < bvh_y.length(); j++) {
+				if (f_rayBvhIntersection(invRay, bvh_y[j].box)) {
+					for (uint x = bvh_x[i].rows.x; x < bvh_x[i].rows.y; x++) {
+						for (uint y = bvh_y[j].rows.x; y < bvh_y[j].rows.y; y++) {
+							uint index = x * grid_size.y * 2 + y;
+							if (f_raySphereIntersection(ray, point_cloud[index].pos.xyz, t_dist)) {
+								if (t_dist < t_length && t_dist > EPSILON) {
+									t_length = t_dist;
+									color = point_cloud[index].col;
+								}
+							}
+						}
+					}
+				}
+			}
+			//color += vec4(vec3(float(i) / 8.0, 0, float(i) / 6.0), 1);
+		}
+	}
+	imageStore(raw_render_layer, pixel_id, color);
+}

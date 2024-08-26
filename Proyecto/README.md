@@ -7,36 +7,15 @@ Arturo Argutea - 21527
 
 REALTIME:
 [Demo Video](Demo.mp4)
-![alt text](image.png)
+![alt text](image-2.png)
 
 ULTRA Quality:
 [Demo Video](Demo-2.mp4)
 ![alt text](image-1.png)
 
 # 1080p
-ULTRA Quality: Really Slow (FHD Screen)
+REALTIME: ~30-40fps (FHD Screen)
 ```console
-./Cpp.exe --voxel-size 0.005 --sphere-display-radius 0.0085 --grid-size 2.0 --iterations 4 --render-scale 0.25
+./Cpp.exe --voxel-size 0.016 --grid-size 248 136 --iterations 4 --render-scale 0.25
 ```
-HIGH Quality: Slow (FHD Screen)
-```console
-./Cpp.exe --voxel-size 0.025 --sphere-display-radius 0.015 --grid-size 2.0 --iterations 4 --render-scale 0.5
-```
-REALTIME: Fast (FHD Screen)
-```console
-./Cpp.exe --voxel-size 0.05 --sphere-display-radius 0.025 --grid-size 2.0 --iterations 4 --render-scale 0.5
-```
-
-# 4k
-ULTRA Quality: Really Slow (4k Screen)
-```console
-./Cpp.exe --voxel-size 0.005 --sphere-display-radius 0.0085 --grid-size 2.0 --iterations 4 --render-scale 0.125
-```
-HIGH Quality: Slow (4k Screen)
-```console
-./Cpp.exe --voxel-size 0.025 --sphere-display-radius 0.015 --grid-size 2.0 --iterations 4 --render-scale 0.25
-```
-REALTIME: Fast (4k Screen)
-```console
-./Cpp.exe --voxel-size 0.05 --sphere-display-radius 0.025 --grid-size 2.0 --iterations 4 --render-scale 0.25
-```
+--sphere-display-mult

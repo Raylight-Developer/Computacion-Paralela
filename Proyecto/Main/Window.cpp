@@ -313,7 +313,8 @@ void Renderer::displayLoop() {
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_v"),  1, value_ptr(projection_v));
 
 		glUniform2i(glGetUniformLocation(compute_program, "grid_size"), GRID_SIZE.x, GRID_SIZE.y);
-		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_DISPLAY_RADIUS);
+		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_RADIUS);
+		glUniform1f(glGetUniformLocation(compute_program, "sphere_display_radius"), SPHERE_DISPLAY_RADIUS);
 
 		glBindImageTexture(0, buffers["raw"], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 

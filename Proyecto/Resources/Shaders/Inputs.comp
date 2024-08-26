@@ -22,4 +22,3 @@ uniform vec3 camera_p_v;
 
 uniform ivec2 grid_size;
 uniform float sphere_radius;
-uniform float sphere_display_radius;
