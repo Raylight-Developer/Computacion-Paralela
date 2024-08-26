@@ -7,11 +7,11 @@
 int main(int argc, char* argv[]) {
 	SetConsoleOutputCP(65001);
 
-	vec1  sphereRadius = 0.0175f;
+	vec1  sphereRadius = 0.016f;
 	vec1  sphereDisplayRadius = sphereRadius * 0.5f * 1.05f;
-	uvec2 gridSize = uvec2(1920,1080) / 8u;
+	uvec2 gridSize = uvec2(248,136);
 	vec1  iterations = 2.0f;
-	vec1  renderScale = 0.125f;
+	vec1  renderScale = 0.25f;
 
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--voxel-size") == 0 && i + 1 < argc) {

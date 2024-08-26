@@ -23,9 +23,9 @@ vec4 getPattern(vec2 uv, const vec1& steps, const vec1& time) {
 
 		d = pow(0.01f / d, 1.2f);
 
-		val += col *d;
+		val += col * d;
 	}
-	return min(val, vec4(1,1,1,1));
+	return val;
 }
 
 void generatePattern(vector<Particle>& points, const uvec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time) {
@@ -37,7 +37,7 @@ void generatePattern(vector<Particle>& points, const uvec2& grid_size, const vec
 			const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 			const vec4 color = getPattern(uv, steps, time);
 			const uint64 index = x * grid_size.y * 2 + y;
-			points[index] = Particle(vec4(uv, color.x * 0.2f, 0.0f), color);
+			points[index] = Particle(vec4(uv, 0.01/color.x, 0.0f), color);
 		}
 	}
 }

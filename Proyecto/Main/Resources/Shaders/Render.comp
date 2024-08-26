@@ -8,7 +8,6 @@
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
 bool f_raySphereIntersection(in Ray ray, in vec3 sphere, out float t) {
 	vec3 CO = ray.origin - sphere;
 	float a = dot(ray.direction, ray.direction);
@@ -22,22 +21,20 @@ bool f_raySphereIntersection(in Ray ray, in vec3 sphere, out float t) {
 	return true;
 }
 
-bool f_rayBvhIntersection(in Ray ray, in vec3 box_min, in vec3 box_max, inout float ray_length) {
-	vec3 t0 = (box_min - ray.origin) * ray.direction;
-	vec3 t1 = (box_max - ray.origin) * ray.direction;
+bool f_rayBvhIntersection(in Ray ray, in AABB box) {
+	vec3 tMin = (box.pmin - ray.origin) * ray.direction;
+	vec3 tMax = (box.pmax - ray.origin) * ray.direction;
 
-	float tmin = max(max(min(t0.x, t1.x), min(t0.y, t1.y)), min(t0.z, t1.z));
-	float tmax = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
+	vec3 t1 = min(tMin, tMax);
+	vec3 t2 = max(tMin, tMax);
 
-	if (all(greaterThanEqual(ray.origin, box_min)) && all(lessThanEqual(ray.origin, box_max))) {
-		ray_length = tmax;
-		return true;
+	float tNear = max(max(t1.x, t1.y), t1.z);
+	float tFar = min(min(t2.x, t2.y), t2.z);
+
+	if (tNear > tFar || tFar < 0.0) {
+		return false;
 	}
-	else if (tmin <= tmax) {
-		ray_length = tmin;
-		return true;
-	}
-	return false;
+	return true;
 }
 
 Ray f_cameraRay(vec2 uv) {
@@ -49,21 +46,66 @@ void main() {
 	vec2 uv = (pixel_id - 1 - vec2(resolution) / 2.0) / float(max(resolution.x, resolution.y));
 
 	Ray ray = f_cameraRay(uv);
+	Ray invRay = ray;
+	invRay.direction = 1.0 / (invRay.direction + EPSILON);
 
 	float t_length = MAX_DIST;
+	float t_dist = MAX_DIST;
 	vec4 color = vec4(0,0,0,1);
-	int grid_width = 2 * grid_size.x;
-	int grid_height = 2 * grid_size.y;
-	for (int x = 0; x < grid_size.x; x++) {
-		for (int y = 0; y < grid_size.y; y++) {
-			uint index = x * grid_size.y * 2 + y;
-			float t_dist = MAX_DIST;
-			if (f_raySphereIntersection(ray, point_cloud[index].pos.xyz, t_dist)) {
-				if (t_dist < t_length && t_dist > EPSILON) {
-					t_length = t_dist;
-					color = point_cloud[index].col;
+
+	const float grid_width = float(grid_size.x) * sphere_radius;
+	const uint  x_cut_size =  grid_size.x / 8u;
+	const float cut_width = grid_width / 4.0;
+	
+	const float grid_height = float(grid_size.y) * sphere_radius;
+	const uint  y_cut_size =  grid_size.y / 6u;
+	const float cut_height = grid_height / 3.0;
+
+	const float padding = sphere_radius * 3.0;
+
+	const BVH bvh_x[8] = {
+		BVH(AABB(vec3(-grid_width                  - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + padding, 0.5)), uvec2(0           , x_cut_size  )),
+		BVH(AABB(vec3(-grid_width + cut_width      - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 2. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size  , x_cut_size*2)),
+		BVH(AABB(vec3(-grid_width + cut_width * 2. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 3. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*2, x_cut_size*3)),
+		BVH(AABB(vec3(-grid_width + cut_width * 3. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 4. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*3, x_cut_size*4)),
+		BVH(AABB(vec3(-grid_width + cut_width * 4. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 5. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*4, x_cut_size*5)),
+		BVH(AABB(vec3(-grid_width + cut_width * 5. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 6. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*5, x_cut_size*6)),
+		BVH(AABB(vec3(-grid_width + cut_width * 6. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 7. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*6, x_cut_size*7)),
+		BVH(AABB(vec3(-grid_width + cut_width * 7. - padding, -grid_height - padding, -0.2), vec3( grid_width                  + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*7, grid_size.x ))
+	};
+
+	const BVH bvh_y[6] = {
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 5. - padding * 3, -0.2), vec3(grid_width + padding,  grid_height                   + padding * 3, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 4. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 5. + padding * 3, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 3. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 4. + padding * 3, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 2. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 3. + padding * 3, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height      - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 2. + padding * 3, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height                   - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height      + padding * 3, 0.5)), uvec2(0           , y_cut_size  ))
+	};
+
+	for (uint i = 0; i < bvh_x.length(); i++) {
+		if (f_rayBvhIntersection(invRay, bvh_x[i].box)) {
+			
+			for (uint j = 0; j < bvh_y.length(); j++) {
+				if (f_rayBvhIntersection(invRay, bvh_y[j].box)) {
+
+					for (uint x = bvh_x[i].rows.x; x < bvh_x[i].rows.y; x++) {
+						for (uint y = bvh_y[j].rows.x; y < bvh_y[j].rows.y; y++) {
+							uint index = x * grid_size.y * 2 + y;
+							if (f_raySphereIntersection(ray, point_cloud[index].pos.xyz, t_dist)) {
+								if (t_dist < t_length && t_dist > EPSILON) {
+									t_length = t_dist;
+									color = point_cloud[index].col;
+								}
+							}
+						}
+					}
+
 				}
 			}
+
+			//color += vec4(vec3(float(i) / 8.0, 0, float(i) / 6.0), 1);
+
 		}
 	}
 

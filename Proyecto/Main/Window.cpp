@@ -16,7 +16,7 @@ Renderer::Renderer(
 {
 	window = nullptr;
 
-	camera_transform = Transform(dvec3(0, 0.1, 5.5));
+	camera_transform = Transform(dvec3(0, 0.05, 5.5));
 
 	frame_counter = 0;
 	frame_count = 0;
@@ -215,8 +215,8 @@ void Renderer::guiLoop() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::Begin("Info");
-	ImGui::Text(("~CPU: " + to_string(int(round((cpu_time / current_time) * 100.0))) + "%%").c_str());
-	ImGui::Text(("~GPU: " + to_string(int(round(100.0 - (cpu_time / current_time) * 100.0))) + "%%").c_str());
+	ImGui::Text(("~CPU: " + to_string(int(round(100.0 - (cpu_time / current_time) * 100.0))) + "%%").c_str());
+	ImGui::Text(("~GPU: " + to_string(int(round((cpu_time / current_time) * 100.0))) + "%%").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
 	ImGui::End();
 
@@ -289,7 +289,7 @@ void Renderer::displayLoop() {
 		const vec1 sensor_size  = 0.036f;
 
 		const vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
-		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
+		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size;
 		const vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 
 
@@ -357,8 +357,6 @@ void Renderer::displayLoop() {
 void Renderer::resize() {
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
 
-	render_resolution = d_to_u(u_to_d(display_resolution) * f_to_d(RENDER_SCALE));
-	render_aspect_ratio = u_to_d(render_resolution.x) / u_to_d(render_resolution.y);
 
 	point_cloud = vector(4 * GRID_SIZE.x * GRID_SIZE.y, Particle());
 
@@ -372,6 +370,7 @@ void Renderer::framebufferSize(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	instance->display_resolution.x = width;
 	instance->display_resolution.y = height;
+	instance->resize();
 }
 
 void Renderer::cursorPos(GLFWwindow* window, double xpos, double ypos) {
