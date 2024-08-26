@@ -51,6 +51,7 @@ uniform vec3 camera_p_u;
 uniform vec3 camera_p_v;
 uniform ivec2 grid_size;
 uniform float sphere_radius;
+uniform float sphere_display_radius;
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 float f_lerp(in float a,in float b, in float t) {
@@ -119,7 +120,7 @@ bool f_raySphereIntersection(in Ray ray, in vec3 sphere, out float t) {
 	vec3 CO = ray.origin - sphere;
 	float a = dot(ray.direction, ray.direction);
 	float b = 2.0*dot(ray.direction, CO);
-	float c = dot(CO, CO) - sphere_radius*sphere_radius;
+	float c = dot(CO, CO) - sphere_display_radius*sphere_display_radius * 0.25;
 	float delta = b*b - 4.0*a*c;
 	if(delta < 0.0) {
 		return false;
@@ -151,14 +152,14 @@ void main() {
 	float t_length = MAX_DIST;
 	float t_dist = MAX_DIST;
 	vec4 color = vec4(0,0,0,1);
-	const float grid_width = float(grid_size.x) * sphere_radius;
+	const float grid_width = float(grid_size.x) * sphere_radius / 2;
 	const uint  x_cut_size =  grid_size.x / 8u;
 	const float cut_width = grid_width / 4.0;
 	
-	const float grid_height = float(grid_size.y) * sphere_radius;
+	const float grid_height = float(grid_size.y) * sphere_radius / 2;
 	const uint  y_cut_size =  grid_size.y / 6u;
 	const float cut_height = grid_height / 3.0;
-	const float padding = sphere_radius * 3.0;
+	const float padding = sphere_display_radius * 4.0;
 	const BVH bvh_x[8] = {
 		BVH(AABB(vec3(-grid_width                  - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + padding, 0.5)), uvec2(0           , x_cut_size  )),
 		BVH(AABB(vec3(-grid_width + cut_width      - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 2. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size  , x_cut_size*2)),
@@ -170,12 +171,12 @@ void main() {
 		BVH(AABB(vec3(-grid_width + cut_width * 7. - padding, -grid_height - padding, -0.2), vec3( grid_width                  + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*7, grid_size.x ))
 	};
 	const BVH bvh_y[6] = {
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 5. - padding * 3, -0.2), vec3(grid_width + padding,  grid_height                   + padding * 3, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 4. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 5. + padding * 3, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 3. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 4. + padding * 3, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 2. - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 3. + padding * 3, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height      - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 2. + padding * 3, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height                   - padding * 3, -0.2), vec3(grid_width + padding, -grid_height + cut_height      + padding * 3, 0.5)), uvec2(0           , y_cut_size  ))
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 5. - padding, -0.2), vec3(grid_width + padding,  grid_height                   + padding, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 4. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 5. + padding, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 3. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 4. + padding, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 2. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 3. + padding, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height      - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 2. + padding, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
+		BVH(AABB(vec3(-grid_width - padding, -grid_height                   - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height      + padding, 0.5)), uvec2(0           , y_cut_size  ))
 	};
 	for (uint i = 0; i < bvh_x.length(); i++) {
 		if (f_rayBvhIntersection(invRay, bvh_x[i].box)) {

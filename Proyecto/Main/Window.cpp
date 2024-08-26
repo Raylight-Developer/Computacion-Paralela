@@ -16,7 +16,7 @@ Renderer::Renderer(
 {
 	window = nullptr;
 
-	camera_transform = Transform(dvec3(0, 0.05, 5.5));
+	camera_transform = Transform(dvec3(0, 0, 5.5));
 
 	frame_counter = 0;
 	frame_count = 0;

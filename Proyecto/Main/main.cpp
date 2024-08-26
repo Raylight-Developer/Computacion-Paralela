@@ -7,17 +7,17 @@
 int main(int argc, char* argv[]) {
 	SetConsoleOutputCP(65001);
 
-	vec1  sphereRadius = 0.016f;
-	vec1  sphereDisplayRadius = sphereRadius * 1.0f;
-	uvec2 gridSize = uvec2(248,136);
-	vec1  iterations = 2.0f;
+	vec1  sphereRadius = 0.015f;
+	vec1  sphereDisplayRadius = sphereRadius;
+	uvec2 gridSize = uvec2(270,150);
+	vec1  iterations = 4.0f;
 	vec1  renderScale = 0.25f;
 
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--voxel-size") == 0 && i + 1 < argc) {
 			sphereRadius = str_to_f(argv[++i]);
 		} else if (strcmp(argv[i], "--sphere-display-mult") == 0 && i + 1 < argc) {
-			sphereDisplayRadius = sphereRadius * 0.5f * str_to_f(argv[++i]);
+			sphereDisplayRadius = sphereRadius * str_to_f(argv[++i]);
 		} else if (strcmp(argv[i], "--grid-size") == 0 && i + 2 < argc) {
 			uvec2 transposed = str_to_u(argv[++i], argv[++i]);
 			gridSize = uvec2(transposed.y, transposed.x);
