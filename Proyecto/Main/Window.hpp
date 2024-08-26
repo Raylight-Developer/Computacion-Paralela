@@ -13,11 +13,13 @@
 struct Renderer {
 	GLFWwindow* window;
 
-	vec1 SPHERE_RADIUS;
-	vec1 SPHERE_DISPLAY_RADIUS;
-	vec1 GRID_SIZE;
-	vec1 ITERATIONS;
-	vec1 RENDER_SCALE;
+	vec1  SPHERE_RADIUS;
+	vec1  SPHERE_DISPLAY_RADIUS;
+	uvec2 GRID_SIZE;
+	vec1  ITERATIONS;
+	vec1  RENDER_SCALE;
+
+	vector<Particle> point_cloud;
 
 	Transform camera_transform;
 
@@ -28,6 +30,7 @@ struct Renderer {
 
 	uint   frame_counter;
 	uint   frame_count;
+	dvec1  cpu_time;
 	uint64 runframe;
 
 	bool recompile;
@@ -53,7 +56,7 @@ struct Renderer {
 	Renderer(
 		const vec1& SPHERE_RADIUS = 0.01f,
 		const vec1& SPHERE_DISPLAY_RADIUS = 0.01 * 0.5f * 1.5f,
-		const vec1& GRID_SIZE = 2.0f,
+		const uvec2& GRID_SIZE = uvec2(192,108),
 		const vec1& ITERATIONS = 4.0f,
 		const vec1& RENDER_SCALE = 0.125
 	);

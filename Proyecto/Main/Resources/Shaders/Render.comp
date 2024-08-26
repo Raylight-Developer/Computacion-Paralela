@@ -9,7 +9,7 @@
 //-------------------------------------------------------------------------------------------------
 
 
-bool intersect_sphere(in Ray ray, in vec3 sphere, out float t) {
+bool f_raySphereIntersection(in Ray ray, in vec3 sphere, out float t) {
 	vec3 CO = ray.origin - sphere;
 	float a = dot(ray.direction, ray.direction);
 	float b = 2.0*dot(ray.direction, CO);
@@ -20,6 +20,24 @@ bool intersect_sphere(in Ray ray, in vec3 sphere, out float t) {
 	}
 	t = (-b-sqrt(delta)) / (2.0*a);
 	return true;
+}
+
+bool f_rayBvhIntersection(in Ray ray, in vec3 box_min, in vec3 box_max, inout float ray_length) {
+	vec3 t0 = (box_min - ray.origin) * ray.direction;
+	vec3 t1 = (box_max - ray.origin) * ray.direction;
+
+	float tmin = max(max(min(t0.x, t1.x), min(t0.y, t1.y)), min(t0.z, t1.z));
+	float tmax = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
+
+	if (all(greaterThanEqual(ray.origin, box_min)) && all(lessThanEqual(ray.origin, box_max))) {
+		ray_length = tmax;
+		return true;
+	}
+	else if (tmin <= tmax) {
+		ray_length = tmin;
+		return true;
+	}
+	return false;
 }
 
 Ray f_cameraRay(vec2 uv) {
@@ -34,12 +52,17 @@ void main() {
 
 	float t_length = MAX_DIST;
 	vec4 color = vec4(0,0,0,1);
-	for (int i = 0; i < point_cloud.length(); i++) {
-		float t_dist = MAX_DIST;
-		if (intersect_sphere(ray, point_cloud[i].pos.xyz, t_dist)) {
-			if (t_dist < t_length && t_dist > EPSILON) {
-				t_length = t_dist;
-				color = point_cloud[i].color;
+	int grid_width = 2 * grid_size.x;
+	int grid_height = 2 * grid_size.y;
+	for (int x = 0; x < grid_size.x; x++) {
+		for (int y = 0; y < grid_size.y; y++) {
+			uint index = x * grid_size.y * 2 + y;
+			float t_dist = MAX_DIST;
+			if (f_raySphereIntersection(ray, point_cloud[index].pos.xyz, t_dist)) {
+				if (t_dist < t_length && t_dist > EPSILON) {
+					t_length = t_dist;
+					color = point_cloud[index].col;
+				}
 			}
 		}
 	}

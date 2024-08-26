@@ -4,7 +4,7 @@
 Renderer::Renderer(
 	const vec1& SPHERE_RADIUS,
 	const vec1& SPHERE_DISPLAY_RADIUS,
-	const vec1& GRID_SIZE,
+	const uvec2& GRID_SIZE,
 	const vec1& ITERATIONS,
 	const vec1& RENDER_SCALE
 ) :
@@ -16,7 +16,7 @@ Renderer::Renderer(
 {
 	window = nullptr;
 
-	camera_transform = Transform(dvec3(0, 0, 5.5));
+	camera_transform = Transform(dvec3(0, 0.1, 5.5));
 
 	frame_counter = 0;
 	frame_count = 0;
@@ -196,12 +196,13 @@ void Renderer::f_pipeline() {
 	buffers["raw"] = renderLayer(render_resolution);
 
 	glBindVertexArray(VAO);
+	point_cloud = vector(4 * GRID_SIZE.x * GRID_SIZE.y, Particle());
 }
 
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
-	vector<Particle> point_cloud = generatePattern(GRID_SIZE / vec2(1.0, render_aspect_ratio), SPHERE_RADIUS, ITERATIONS, d_to_f(current_time));
+	generatePattern(point_cloud, GRID_SIZE, SPHERE_RADIUS, ITERATIONS, d_to_f(current_time));
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 
@@ -214,9 +215,9 @@ void Renderer::guiLoop() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::Begin("Info");
-	ImGui::Text((to_string(1.0 / u_to_d(frame_count)) + "ms").c_str());
+	ImGui::Text(("~CPU: " + to_string(int(round((cpu_time / current_time) * 100.0))) + "%%").c_str());
+	ImGui::Text(("~GPU: " + to_string(int(round(100.0 - (cpu_time / current_time) * 100.0))) + "%%").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
-	ImGui::Text((to_string(runframe) + "frames").c_str());
 	ImGui::End();
 
 	ImGui::Render();
@@ -290,7 +291,11 @@ void Renderer::displayLoop() {
 		const vec3 projection_center = d_to_f(camera_transform.position) + focal_length * z_vector;
 		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size ;
 		const vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
+
+
+		const dvec1 current_tick_time = glfwGetTime();
 		f_tickUpdate();
+		cpu_time += glfwGetTime() - current_tick_time;
 
 		GLuint compute_program = buffers["compute"];
 
@@ -307,6 +312,7 @@ void Renderer::displayLoop() {
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_u"),  1, value_ptr(projection_u));
 		glUniform3fv(glGetUniformLocation(compute_program, "camera_p_v"),  1, value_ptr(projection_v));
 
+		glUniform2i(glGetUniformLocation(compute_program, "grid_size"), GRID_SIZE.x, GRID_SIZE.y);
 		glUniform1f(glGetUniformLocation(compute_program, "sphere_radius"), SPHERE_DISPLAY_RADIUS);
 
 		glBindImageTexture(0, buffers["raw"], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -350,6 +356,12 @@ void Renderer::displayLoop() {
 
 void Renderer::resize() {
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
+
+	render_resolution = d_to_u(u_to_d(display_resolution) * f_to_d(RENDER_SCALE));
+	render_aspect_ratio = u_to_d(render_resolution.x) / u_to_d(render_resolution.y);
+
+	point_cloud = vector(4 * GRID_SIZE.x * GRID_SIZE.y, Particle());
+
 	current_mouse = dvec2(display_resolution) / 2.0;
 	last_mouse = current_mouse;
 	runframe = 0;

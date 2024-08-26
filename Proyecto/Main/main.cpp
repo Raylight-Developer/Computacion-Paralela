@@ -7,11 +7,11 @@
 int main(int argc, char* argv[]) {
 	SetConsoleOutputCP(65001);
 
-	vec1 sphereRadius = 0.05f;
-	vec1 sphereDisplayRadius = 0.05f * 0.5f * 1.05f;
-	vec1 gridSize = 2.0f;
-	vec1 iterations = 4.0f;
-	vec1 renderScale = 0.25f;
+	vec1  sphereRadius = 0.0175f;
+	vec1  sphereDisplayRadius = sphereRadius * 0.5f * 1.05f;
+	uvec2 gridSize = uvec2(1920,1080) / 8u;
+	vec1  iterations = 2.0f;
+	vec1  renderScale = 0.125f;
 
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--voxel-size") == 0 && i + 1 < argc) {
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 		} else if (strcmp(argv[i], "--sphere-display-radius") == 0 && i + 1 < argc) {
 			sphereDisplayRadius = str_to_f(argv[++i]);
 		} else if (strcmp(argv[i], "--grid-size") == 0 && i + 2 < argc) {
-			gridSize = str_to_f(argv[++i]);
+			gridSize = str_to_f(argv[++i], argv[++i]);
 		} else if (strcmp(argv[i], "--iterations") == 0 && i + 1 < argc) {
 			iterations = str_to_f(argv[++i]);
 		} else if (strcmp(argv[i], "--render-scale") == 0 && i + 1 < argc) {

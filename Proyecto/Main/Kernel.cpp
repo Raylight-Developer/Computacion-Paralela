@@ -25,23 +25,21 @@ vec4 getPattern(vec2 uv, const vec1& steps, const vec1& time) {
 
 		val += col *d;
 	}
-	return val;
+	return min(val, vec4(1,1,1,1));
 }
 
-vector<Particle> generatePattern(const vec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time) {
-	vector<Particle> points;
-	const ivec2 grid_size_normal = f_to_i(grid_size / particle_size);
+void generatePattern(vector<Particle>& points, const uvec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time) {
+	const ivec2 offset = u_to_i(grid_size) / 2;
 
 	#pragma omp parallel for collapse(2)
-	for (int x = -grid_size_normal.x; x < grid_size_normal.x; x++) {
-		for (int y = -grid_size_normal.y; y < grid_size_normal.y; y++) {
-			const vec2 uv = i_to_f(vec2(x, y)) * particle_size;
+	for (int x = 0; x < grid_size.x * 2u; x++) {
+		for (int y = 0; y < grid_size.y * 2u; y++) {
+			const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 			const vec4 color = getPattern(uv, steps, time);
-			#pragma omp critical
-			points.push_back(Particle(vec4(uv, 0.0f, 0.0f), color));
+			const uint64 index = x * grid_size.y * 2 + y;
+			points[index] = Particle(vec4(uv, color.x * 0.2f, 0.0f), color);
 		}
 	}
-	return points;
 }
 
 Transform::Transform(const dvec3& position, const dvec3& rotation, const dvec3& scale, const Rotation_Type& type) :
