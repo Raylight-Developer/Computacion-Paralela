@@ -216,7 +216,7 @@ void Renderer::guiLoop() {
 
 	ImGui::Begin("Info");
 	ImGui::Text(("Frame Delta: " + to_string(frame_time) + "ms").c_str());
-	ImGui::Text(("Non-OpenMp Delta: " + to_string(open_mp_delta) + "ms").c_str());
+	ImGui::Text(("OpenMp Delta: " + to_string(open_mp_delta) + "ms").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
 	ImGui::End();
 
