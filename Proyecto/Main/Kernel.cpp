@@ -32,12 +32,15 @@ void generatePattern(vector<Particle>& points, const ivec2& grid_size, const vec
 	const ivec2 offset = u_to_i(grid_size) / 2;
 
 	if (openmp) {
-		#pragma omp parallel for collapse(2) num_threads(14)
-		for (int x = 0; x < grid_size.x * 2; x++) {
-			for (int y = 0; y < grid_size.y * 2; y++) {
+		int x;
+		int y;
+		#pragma omp parallel for private(x,y) collapse(2) num_threads(12)
+		for (x = 0; x < grid_size.x * 2; x++) {
+			for (y = 0; y < grid_size.y * 2; y++) {
 				const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 				const vec4 color = getPattern(uv, steps, time);
 				const uint64 index = x * grid_size.y * 2 + y;
+				#pragma omp crititcal
 				points[index] = Particle(vec4(uv, 0.01/color.x, 0.0f), color);
 			}
 		}
