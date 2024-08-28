@@ -1,5 +1,10 @@
 #include "Window.hpp"
 
+#undef NL
+#undef FILE
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "External/stb_image.h"
 
 Renderer::Renderer(
 	const vec1& SPHERE_RADIUS,
@@ -86,11 +91,25 @@ void Renderer::initGlfw() {
 	display_aspect_ratio = u_to_d(display_resolution.x) / u_to_d(display_resolution.y);
 	last_mouse = glm::dvec2(display_resolution) / 2.0;
 
-	window = glfwCreateWindow(display_resolution.x, display_resolution.y, "Proyect", NULL, NULL);
+	window = glfwCreateWindow(display_resolution.x, display_resolution.y, "Screensaver", NULL, NULL);
 
 	if (window == NULL) {
 		cout << "Failed to create GLFW window" << endl;
 		glfwTerminate();
+	}
+
+	int width, height, channels;
+	unsigned char* image = stbi_load("Resources/Logo.png", &width, &height, &channels, 4);
+	if (!image) {
+		cerr << "Failed to load icon image" << std::endl;
+	} else {
+		GLFWimage icon;
+		icon.width = width;
+		icon.height = height;
+		icon.pixels = image;
+
+		glfwSetWindowIcon(window, 1, &icon);
+		stbi_image_free(image);
 	}
 
 	glfwMakeContextCurrent(window);
