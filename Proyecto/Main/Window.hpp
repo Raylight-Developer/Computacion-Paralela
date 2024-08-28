@@ -62,7 +62,6 @@ struct Renderer {
 		const vec1& RENDER_SCALE = 0.125,
 		const bool& OPENMP = false
 	);
-	~Renderer();
 
 	void init();
 	void quit();

@@ -53,10 +53,6 @@ Renderer::Renderer(
 	view_layer = 0;
 }
 
-Renderer::~Renderer() {
-	delete window;
-}
-
 void Renderer::init() {
 	initGlfw();
 	initImGui();
@@ -227,7 +223,7 @@ void Renderer::f_pipeline() {
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
-	generatePattern(point_cloud, GRID_SIZE, SPHERE_RADIUS, ITERATIONS, d_to_f(current_time), OPENMP);
+	generatePattern(point_cloud, u_to_i(GRID_SIZE), SPHERE_RADIUS, ITERATIONS, d_to_f(current_time), OPENMP);
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 

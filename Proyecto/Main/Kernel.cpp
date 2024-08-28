@@ -28,25 +28,24 @@ vec4 getPattern(vec2 uv, const vec1& steps, const vec1& time) {
 	return val;
 }
 
-void generatePattern(vector<Particle>& points, const uvec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time, const bool& openmp) {
+void generatePattern(vector<Particle>& points, const ivec2& grid_size, const vec1& particle_size, const vec1& steps, const vec1& time, const bool& openmp) {
 	const ivec2 offset = u_to_i(grid_size) / 2;
 
 	if (openmp) {
 		int y;
-		#pragma omp parallel for collapse(2)  private(y) num_threads(12) 
-		for (int x = 0; x < grid_size.x * 2u; x++) {
-			for (y = 0; y < grid_size.y * 2u; y++) {
+		#pragma omp parallel for collapse(2)  private(y) num_threads(14)
+		for (int x = 0; x < grid_size.x * 2; x++) {
+			for (y = 0; y < grid_size.y * 2; y++) {
 				const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 				const vec4 color = getPattern(uv, steps, time);
 				const uint64 index = x * grid_size.y * 2 + y;
-				#pragma critical
 				points[index] = Particle(vec4(uv, 0.01/color.x, 0.0f), color);
 			}
 		}
 	}
 	else {
-		for (int x = 0; x < grid_size.x * 2u; x++) {
-			for (int y = 0; y < grid_size.y * 2u; y++) {
+		for (int x = 0; x < grid_size.x * 2; x++) {
+			for (int y = 0; y < grid_size.y * 2; y++) {
 				const vec2 uv = i_to_f(f_to_i(vec2(x, y)) - offset) * particle_size;
 				const vec4 color = getPattern(uv, steps, time);
 				const uint64 index = x * grid_size.y * 2 + y;
