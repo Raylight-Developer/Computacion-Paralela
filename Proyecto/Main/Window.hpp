@@ -18,6 +18,7 @@ struct Renderer {
 	uvec2 GRID_SIZE;
 	vec1  ITERATIONS;
 	vec1  RENDER_SCALE;
+	bool OPENMP;
 
 	vector<Particle> point_cloud;
 
@@ -43,7 +44,7 @@ struct Renderer {
 	dvec2 current_mouse;
 	dvec2 last_mouse;
 
-	dvec1 open_mp_delta;
+	dvec1 sim_delta;
 	dvec1 current_time;
 	dvec1 window_time;
 	dvec1 frame_time;
@@ -58,7 +59,8 @@ struct Renderer {
 		const vec1& SPHERE_DISPLAY_RADIUS = 0.01 * 0.5f * 1.5f,
 		const uvec2& GRID_SIZE = uvec2(192,108),
 		const vec1& ITERATIONS = 4.0f,
-		const vec1& RENDER_SCALE = 0.125
+		const vec1& RENDER_SCALE = 0.125,
+		const bool& OPENMP = false
 	);
 	~Renderer();
 

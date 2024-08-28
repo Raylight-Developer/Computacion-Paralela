@@ -6,13 +6,15 @@ Renderer::Renderer(
 	const vec1& SPHERE_DISPLAY_RADIUS,
 	const uvec2& GRID_SIZE,
 	const vec1& ITERATIONS,
-	const vec1& RENDER_SCALE
+	const vec1& RENDER_SCALE,
+	const bool& OPENMP
 ) :
 	SPHERE_RADIUS(SPHERE_RADIUS),
 	SPHERE_DISPLAY_RADIUS(SPHERE_DISPLAY_RADIUS),
 	GRID_SIZE(GRID_SIZE),
 	ITERATIONS(ITERATIONS),
-	RENDER_SCALE(RENDER_SCALE)
+	RENDER_SCALE(RENDER_SCALE),
+	OPENMP(OPENMP)
 {
 	window = nullptr;
 
@@ -206,7 +208,7 @@ void Renderer::f_pipeline() {
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
-	generatePattern(point_cloud, GRID_SIZE, SPHERE_RADIUS, ITERATIONS, d_to_f(current_time));
+	generatePattern(point_cloud, GRID_SIZE, SPHERE_RADIUS, ITERATIONS, d_to_f(current_time), OPENMP);
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 
@@ -220,7 +222,10 @@ void Renderer::guiLoop() {
 
 	ImGui::Begin("Info");
 	ImGui::Text(("Frame Delta: " + to_string(frame_time) + "ms").c_str());
-	ImGui::Text(("OpenMp Delta: " + to_string(open_mp_delta) + "ms").c_str());
+	if (OPENMP)
+		ImGui::Text(("OpenMp Delta: " + to_string(sim_delta) + "ms").c_str());
+	else
+		ImGui::Text(("NON-OpenMp Delta: " + to_string(sim_delta) + "ms").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
 	ImGui::End();
 
@@ -298,7 +303,7 @@ void Renderer::displayLoop() {
 
 		const dvec1 current_omp_time = glfwGetTime();
 		f_tickUpdate();
-		open_mp_delta = glfwGetTime() - current_omp_time;
+		sim_delta = glfwGetTime() - current_omp_time;
 
 		GLuint compute_program = buffers["compute"];
 
