@@ -60,6 +60,7 @@ struct Renderer {
 		const vec1& ITERATIONS = 4.0f,
 		const vec1& RENDER_SCALE = 0.125
 	);
+	~Renderer();
 
 	void init();
 	void quit();

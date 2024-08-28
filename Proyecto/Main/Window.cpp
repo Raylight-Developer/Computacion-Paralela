@@ -46,6 +46,10 @@ Renderer::Renderer(
 	view_layer = 0;
 }
 
+Renderer::~Renderer() {
+	delete window;
+}
+
 void Renderer::init() {
 	initGlfw();
 	initImGui();
