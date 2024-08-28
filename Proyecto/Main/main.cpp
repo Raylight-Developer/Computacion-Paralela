@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
 	uvec2 gridSize = uvec2(270,150);
 	vec1  iterations = 4.0f;
 	vec1  renderScale = 0.25f;
-	bool  openmp = false;
+	bool  openmp = true;
 
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--voxel-size") == 0 && i + 1 < argc) {
