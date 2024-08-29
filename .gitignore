@@ -38,3 +38,4 @@
 /Proyecto/x64
 *.user
 Proyecto/Cpp.pdb
+Proyecto/Resources/Shaders/Render_Compiled.comp
