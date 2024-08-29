@@ -15,11 +15,7 @@ Preview
 ![alt text](image-1.png)
 # Demo
 
-REALTIME:
 [Demo Video](Demo.mp4)
-
-HQ:
-[Demo Video](Demo-2.mp4)
 
 # Parameters
 
