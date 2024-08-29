@@ -20,12 +20,28 @@ HQ:
 
 
 # 1080p
-REALTIME-ish: ~30-35fps (FHD Screen)
+~60-70 fps (FHD Screen)
+```console
+./Cpp.exe --voxel-size 0.03 --sphere-display-mult 1.15 --grid-size 135 75 --iterations 4.0 --render-scale 0.25 --openmp 1
+```
+
+~30-35fps (FHD Screen)
 ```console
 ./Cpp.exe --voxel-size 0.015 --sphere-display-mult 1.45 --grid-size 270 150 --iterations 4.0 --render-scale 0.2 --openmp 1
 ```
 
-HQ: ~5-10fps (FHD Screen)
+~5-10fps (FHD Screen)
 ```console
 ./Cpp.exe --voxel-size 0.0075 --sphere-display-mult 1.5 --grid-size 540 300 --iterations 6 --render-scale 0.25 --openmp 1
+```
+
+
+Half Resolution
+```console
+./Cpp.exe --voxel-size 0.03 --grid-size 135 75 --iterations 4.0 --render-scale 0.5 --sphere-display-mult 1.0 --openmp 1 
+```
+
+Native Resolution
+```console
+./Cpp.exe --voxel-size 0.05 --grid-size 50 20 --iterations 4.0 --render-scale 1.0 --sphere-display-mult 1.0 --openmp 1 
 ```
