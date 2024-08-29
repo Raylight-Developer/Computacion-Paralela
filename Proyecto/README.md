@@ -18,6 +18,10 @@ HQ:
 [Demo Video](Demo-2.mp4)
 ![alt text](image-1.png)
 
+Defaults:
+```console
+--voxel-size 0.015 --sphere-display-mult 1.0 --grid-size 270 150 --iterations 4.0 --render-scale 0.25 --openmp 1
+```
 
 # 1080p
 ~60-70 fps (FHD Screen)

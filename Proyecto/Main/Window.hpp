@@ -44,6 +44,8 @@ struct Renderer {
 	dvec2 current_mouse;
 	dvec2 last_mouse;
 
+	dvec1 sim_deltas;
+
 	dvec1 sim_delta;
 	dvec1 current_time;
 	dvec1 window_time;

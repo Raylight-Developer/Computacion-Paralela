@@ -45,6 +45,8 @@ Renderer::Renderer(
 	current_mouse = dvec2(display_resolution) / 2.0;
 	last_mouse = dvec2(display_resolution) / 2.0;
 
+	sim_deltas = 0.0;
+
 	current_time = 0.0;
 	window_time = 0.0;
 	frame_time = FPS_60;
@@ -236,11 +238,11 @@ void Renderer::guiLoop() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::Begin("Info");
-	ImGui::Text(("Frame Delta: " + to_string(frame_time) + "ms").c_str());
+	ImGui::Text(("Avg. Frame Delta: " + to_string(current_time / ul_to_d(runframe)) + "ms").c_str());
 	if (OPENMP)
-		ImGui::Text(("OpenMp Delta: " + to_string(sim_delta) + "ms").c_str());
+		ImGui::Text(("Avg. OpenMp Delta: " + to_string(sim_deltas / ul_to_d(runframe)) + "ms").c_str());
 	else
-		ImGui::Text(("NON-OpenMp Delta: " + to_string(sim_delta) + "ms").c_str());
+		ImGui::Text(("Avg. NON-OpenMp Delta: " + to_string(sim_deltas / ul_to_d(runframe)) + "ms").c_str());
 	ImGui::Text((to_string(frame_count) + "fps").c_str());
 	ImGui::End();
 
@@ -373,6 +375,7 @@ void Renderer::displayLoop() {
 		}
 
 		guiLoop();
+		sim_deltas += sim_delta;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
