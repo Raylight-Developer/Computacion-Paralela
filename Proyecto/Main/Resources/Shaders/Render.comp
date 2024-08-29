@@ -3,8 +3,6 @@
 #version 460
 #include "Globals.comp"
 #include "Inputs.comp"
-#include "Utilities.comp"
-#include "Random.comp"
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
@@ -61,7 +59,7 @@ void main() {
 	const uint  y_cut_size =  grid_size.y / 6u;
 	const float cut_height = grid_height / 3.0;
 
-	const float padding = sphere_display_radius * 4.0;
+	const float padding = sphere_display_radius * 5.0;
 
 	const BVH bvh_x[8] = {
 		BVH(AABB(vec3(-grid_width                  - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + padding, 0.5)), uvec2(0           , x_cut_size  )),
