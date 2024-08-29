@@ -60,25 +60,26 @@ void main() {
 	const float cut_height = grid_height / 3.0;
 
 	const float padding = sphere_display_radius * 5.0;
+	const float edge_padding = sphere_display_radius * 2.0;
 
 	const BVH bvh_x[8] = {
-		BVH(AABB(vec3(-grid_width                  - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + padding, 0.5)), uvec2(0           , x_cut_size  )),
-		BVH(AABB(vec3(-grid_width + cut_width      - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 2. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size  , x_cut_size*2)),
-		BVH(AABB(vec3(-grid_width + cut_width * 2. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 3. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*2, x_cut_size*3)),
-		BVH(AABB(vec3(-grid_width + cut_width * 3. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 4. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*3, x_cut_size*4)),
-		BVH(AABB(vec3(-grid_width + cut_width * 4. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 5. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*4, x_cut_size*5)),
-		BVH(AABB(vec3(-grid_width + cut_width * 5. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 6. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*5, x_cut_size*6)),
-		BVH(AABB(vec3(-grid_width + cut_width * 6. - padding, -grid_height - padding, -0.2), vec3(-grid_width + cut_width * 7. + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*6, x_cut_size*7)),
-		BVH(AABB(vec3(-grid_width + cut_width * 7. - padding, -grid_height - padding, -0.2), vec3( grid_width                  + padding, grid_height + padding, 0.5)), uvec2(x_cut_size*7, grid_size.x ))
+		BVH(AABB(vec3(-grid_width                  - edge_padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width      + padding, grid_height + edge_padding, 0.5)), uvec2(0           , x_cut_size  )),
+		BVH(AABB(vec3(-grid_width + cut_width      - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 2. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size  , x_cut_size*2)),
+		BVH(AABB(vec3(-grid_width + cut_width * 2. - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 3. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*2, x_cut_size*3)),
+		BVH(AABB(vec3(-grid_width + cut_width * 3. - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 4. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*3, x_cut_size*4)),
+		BVH(AABB(vec3(-grid_width + cut_width * 4. - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 5. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*4, x_cut_size*5)),
+		BVH(AABB(vec3(-grid_width + cut_width * 5. - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 6. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*5, x_cut_size*6)),
+		BVH(AABB(vec3(-grid_width + cut_width * 6. - padding, -grid_height - edge_padding, -0.2), vec3(-grid_width + cut_width * 7. + padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*6, x_cut_size*7)),
+		BVH(AABB(vec3(-grid_width + cut_width * 7. - padding, -grid_height - edge_padding, -0.2), vec3( grid_width                  + edge_padding, grid_height + edge_padding, 0.5)), uvec2(x_cut_size*7, grid_size.x ))
 	};
 
 	const BVH bvh_y[6] = {
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 5. - padding, -0.2), vec3(grid_width + padding,  grid_height                   + padding, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 4. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 5. + padding, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 3. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 4. + padding, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height * 2. - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 3. + padding, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height + cut_height      - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height * 2. + padding, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
-		BVH(AABB(vec3(-grid_width - padding, -grid_height                   - padding, -0.2), vec3(grid_width + padding, -grid_height + cut_height      + padding, 0.5)), uvec2(0           , y_cut_size  ))
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height + cut_height * 5. - padding, -0.2), vec3(grid_width + edge_padding,  grid_height                   + edge_padding, 0.5)), uvec2(y_cut_size*5, grid_size.y )),
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height + cut_height * 4. - padding, -0.2), vec3(grid_width + edge_padding, -grid_height + cut_height * 5. + padding, 0.5)), uvec2(y_cut_size*4, y_cut_size*5)),
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height + cut_height * 3. - padding, -0.2), vec3(grid_width + edge_padding, -grid_height + cut_height * 4. + padding, 0.5)), uvec2(y_cut_size*3, y_cut_size*4)),
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height + cut_height * 2. - padding, -0.2), vec3(grid_width + edge_padding, -grid_height + cut_height * 3. + padding, 0.5)), uvec2(y_cut_size*2, y_cut_size*3)),
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height + cut_height      - padding, -0.2), vec3(grid_width + edge_padding, -grid_height + cut_height * 2. + padding, 0.5)), uvec2(y_cut_size  , y_cut_size*2)),
+		BVH(AABB(vec3(-grid_width - edge_padding, -grid_height                   - edge_padding, -0.2), vec3(grid_width + edge_padding, -grid_height + cut_height      + edge_padding, 0.5)), uvec2(0           , y_cut_size  ))
 	};
 
 	for (uint i = 0; i < bvh_x.length(); i++) {
