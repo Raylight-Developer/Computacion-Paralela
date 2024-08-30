@@ -225,7 +225,9 @@ void Renderer::f_pipeline() {
 void Renderer::f_tickUpdate() {
 	glDeleteBuffers(1, &buffers["ssbo"]);
 
+	const dvec1 current_omp_time = glfwGetTime();
 	generatePattern(point_cloud, u_to_i(GRID_SIZE), SPHERE_RADIUS, ITERATIONS, d_to_f(current_time), OPENMP);
+	sim_delta = glfwGetTime() - current_omp_time;
 	buffers["ssbo"] = ssboBinding(1, ul_to_u(point_cloud.size() * sizeof(Particle)), point_cloud.data());
 }
 
@@ -238,12 +240,17 @@ void Renderer::guiLoop() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::Begin("Info");
-	ImGui::Text(("Avg. Frame Delta: " + to_string(current_time / ul_to_d(runframe)) + "ms").c_str());
+	ImGui::Text(("Avg. Frame Delta: " + to_str(current_time / ul_to_d(runframe), 5) + "ms").c_str());
 	if (OPENMP)
-		ImGui::Text(("Avg. OpenMp Delta: " + to_string(sim_deltas / ul_to_d(runframe)) + "ms").c_str());
+		ImGui::Text(("Avg. OpenMp Delta: " + to_str(sim_deltas / ul_to_d(runframe), 5) + "ms").c_str());
 	else
-		ImGui::Text(("Avg. NON-OpenMp Delta: " + to_string(sim_deltas / ul_to_d(runframe)) + "ms").c_str());
-	ImGui::Text((to_string(frame_count) + "fps").c_str());
+		ImGui::Text(("Avg. NON-OpenMp Delta: " + to_str(sim_deltas / ul_to_d(runframe), 5) + "ms").c_str());
+
+	const dvec1 percent = (sim_deltas / current_time) * 100.0;
+	ImGui::Text(("~CPU[" + to_str(percent, 2) + "]%%").c_str());
+	ImGui::Text(("~GPU[" + to_str(100.0 - percent, 2) + "]%%").c_str());
+
+	ImGui::Text(("Avg. Fps: " + to_str(ul_to_d(runframe) / current_time, 1)).c_str());
 	ImGui::End();
 
 	ImGui::Render();
@@ -254,32 +261,26 @@ void Renderer::gameLoop() {
 	if (keys[GLFW_KEY_D]) {
 		camera_transform.moveLocal(dvec3(1.0, 0.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_KEY_A]) {
 		camera_transform.moveLocal(dvec3(-1.0, 0.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_KEY_E] || keys[GLFW_KEY_SPACE]) {
 		camera_transform.moveLocal(dvec3(0.0, 1.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_KEY_Q] || keys[GLFW_KEY_LEFT_CONTROL]) {
 		camera_transform.moveLocal(dvec3(0.0, -1.0, 0.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_KEY_W]) {
 		camera_transform.moveLocal(dvec3(0.0, 0.0, -1.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_KEY_S]) {
 		camera_transform.moveLocal(dvec3(0.0, 0.0, 1.0)* camera_move_sensitivity * frame_time);
 		reset = true;
-		runframe = 0;
 	}
 	if (keys[GLFW_MOUSE_BUTTON_RIGHT]) {
 		const dvec1 xoffset = (last_mouse.x - current_mouse.x) * frame_time * camera_view_sensitivity;
@@ -287,7 +288,6 @@ void Renderer::gameLoop() {
 
 		camera_transform.rotate(dvec3(yoffset, xoffset, 0.0));
 		reset = true;
-		runframe = 0;
 
 		last_mouse = current_mouse;
 	}
@@ -318,9 +318,7 @@ void Renderer::displayLoop() {
 		const vec3 projection_u = normalize(cross(z_vector, y_vector)) * sensor_size;
 		const vec3 projection_v = normalize(cross(projection_u, z_vector)) * sensor_size;
 
-		const dvec1 current_omp_time = glfwGetTime();
 		f_tickUpdate();
-		sim_delta = glfwGetTime() - current_omp_time;
 
 		GLuint compute_program = buffers["compute"];
 
@@ -390,7 +388,6 @@ void Renderer::resize() {
 
 	current_mouse = dvec2(display_resolution) / 2.0;
 	last_mouse = current_mouse;
-	runframe = 0;
 }
 
 void Renderer::framebufferSize(GLFWwindow* window, int width, int height) {
@@ -432,12 +429,10 @@ void Renderer::scroll(GLFWwindow* window, double xoffset, double yoffset) {
 	Renderer* instance = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
 	if (yoffset < 0) {
 		instance->reset = true;
-		instance->runframe = 0;
 		instance->camera_move_sensitivity /= 1.05;
 	}
 	if (yoffset > 0) {
 		instance->reset = true;
-		instance->runframe = 0;
 		instance->camera_move_sensitivity *= 1.05;
 	}
 }
@@ -465,7 +460,6 @@ void Renderer::key(GLFWwindow* window, int key, int scancode, int action, int mo
 	}
 	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
 		instance->reset = true;
-		instance->runframe = 0;
 	}
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GLFW_TRUE);

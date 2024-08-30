@@ -58,3 +58,10 @@ inline isvec1 str_to_is(const string& val_1) { return i_to_is(stoi(val_1)); }
 inline isvec2 str_to_is(const string& val_1, const string& val_2) { return i_to_is(ivec2(stoi(val_1), stoi(val_2))); }
 inline isvec3 str_to_is(const string& val_1, const string& val_2, const string& val_3) { return i_to_is(ivec3(stoi(val_1), stoi(val_2), stoi(val_3))); }
 inline isvec4 str_to_is(const string& val_1, const string& val_2, const string& val_3, const string& val_4) { return i_to_is(ivec4(stoi(val_1), stoi(val_2), stoi(val_3), stoi(val_4))); }
+
+template <typename T>
+inline string to_str(const T& value, const uint& n) {
+	ostringstream out;
+	out << std::fixed << std::setprecision(n) << value;
+	return out.str();
+}
