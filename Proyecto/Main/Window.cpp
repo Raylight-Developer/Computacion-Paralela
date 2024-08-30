@@ -244,7 +244,7 @@ void Renderer::guiLoop() {
 	if (OPENMP)
 		ImGui::Text(("Avg. OpenMp Delta: " + to_str(sim_deltas / ul_to_d(runframe), 5) + "ms").c_str());
 	else
-		ImGui::Text(("Avg. NON-OpenMp Delta: " + to_str(sim_deltas / ul_to_d(runframe), 5) + "ms").c_str());
+		ImGui::Text(("Avg. Sequential Delta: " + to_str(sim_deltas / ul_to_d(runframe), 5) + "ms").c_str());
 
 	const dvec1 percent = (sim_deltas / current_time) * 100.0;
 	ImGui::Text(("~CPU[" + to_str(percent, 2) + "]%%").c_str());
